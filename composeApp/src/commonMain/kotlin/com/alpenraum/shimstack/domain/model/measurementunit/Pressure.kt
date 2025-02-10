@@ -23,4 +23,6 @@ data class Pressure(
     override fun asImperial(): Double = (pressureInBar * BAR_TO_PSI_CONVERSION).round(1)
 
     override val storageKey = "PREF_PRESSURE_UNIT"
+
+    operator fun plus(bar: Double): Pressure = this.copy(pressureInBar = this.pressureInBar + bar)
 }

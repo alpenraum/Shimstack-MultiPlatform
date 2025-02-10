@@ -221,8 +221,8 @@ class SetupWizardViewModel(
         val selectedSymptom =
             (_state.value as? SetupWizardContract.State.SelectSymptom)?.symptoms?.firstOrNull { it.selected } ?: return@launch
         val bike = selectedBike.value ?: return@launch
-        val front = if (selectedSymptom.setupSymptom.requiresLocation) isFront else null
-        val highSpeed = if (selectedSymptom.setupSymptom.requiresSpeed) isHighSpeed else null
+        val front = if (selectedSymptom.setupSymptom.requiresLocation) isFront else false
+        val highSpeed = if (selectedSymptom.setupSymptom.requiresSpeed) isHighSpeed else false
 
         getSetupSolutionUseCase(selectedSymptom.setupSymptom, bike, front, highSpeed)
         emitDefaultState()

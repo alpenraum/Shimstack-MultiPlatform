@@ -2,6 +2,7 @@ package com.alpenraum.shimstack.domain.setupwizard
 
 import com.alpenraum.shimstack.domain.SetupRecommendationRepository
 import com.alpenraum.shimstack.domain.model.bike.Bike
+import com.alpenraum.shimstack.domain.setupwizard.symptomsolvers.MushSymptomSolver
 import com.alpenraum.shimstack.domain.setupwizard.symptomsolvers.OversteerSymptomSolver
 import com.alpenraum.shimstack.domain.setupwizard.symptomsolvers.UndersteerSymptomSolver
 import org.koin.core.annotation.Single
@@ -16,14 +17,15 @@ import kotlin.uuid.Uuid
 class GetSetupSolutionUseCase(
     private val setupRecommendationRepository: SetupRecommendationRepository,
     private val understeerSymptomSolver: UndersteerSymptomSolver,
-    private val oversteerSymptomSolver: OversteerSymptomSolver
+    private val oversteerSymptomSolver: OversteerSymptomSolver,
+    private val mushSymptomSolver: MushSymptomSolver
 ) {
     @OptIn(ExperimentalUuidApi::class)
     suspend operator fun invoke(
         issue: SetupSymptom,
         bike: Bike,
-        isFront: Boolean?,
-        isOnHighSpeed: Boolean?
+        isFront: Boolean,
+        isOnHighSpeed: Boolean
     ): SetupRecommendation {
         val currentWizardSession =
             setupRecommendationRepository.getOpenWizardSessionForBike(bikeId = bike.id ?: -1) ?: Uuid.random().toHexString()
@@ -44,7 +46,7 @@ class GetSetupSolutionUseCase(
                         rearTirePressureDelta = oversteerSymptomSolver.solve(bike.rearTire)
                     )
 
-                SetupSymptom.MUSH -> TODO()
+                SetupSymptom.MUSH -> solveMush(bike, isFront, currentWizardSession)
                 SetupSymptom.HARSH_OVER_SMALL_BUMPS -> TODO()
                 SetupSymptom.BRAKE_DIVE -> TODO()
                 SetupSymptom.STEEP_DIVE -> TODO()
@@ -62,4 +64,23 @@ class GetSetupSolutionUseCase(
 
         return recommendation
     }
+
+    private fun solveMush(
+        bike: Bike,
+        isFront: Boolean,
+        currentWizardSession: String
+    ): SetupRecommendation =
+        if (isFront) {
+            SetupRecommendation(
+                wizardSession = currentWizardSession,
+                bikeId = bike.id ?: -1,
+                frontSagDelta = mushSymptomSolver.solve(bike.frontSuspension)
+            )
+        } else {
+            SetupRecommendation(
+                wizardSession = currentWizardSession,
+                bikeId = bike.id ?: -1,
+                rearSagDelta = mushSymptomSolver.solve(bike.rearSuspension)
+            )
+        }
 }

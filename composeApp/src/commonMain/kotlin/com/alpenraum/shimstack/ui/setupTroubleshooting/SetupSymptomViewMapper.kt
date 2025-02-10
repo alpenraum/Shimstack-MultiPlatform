@@ -35,7 +35,6 @@ import shimstackmultiplatform.composeapp.generated.resources.symptom_wallowy_tit
 
 @Single
 class SetupSymptomViewMapper {
-    // TODO
     fun map(setupSymptom: SetupSymptom): SetupSymptomView {
         val (name, description) =
             when (setupSymptom) {
