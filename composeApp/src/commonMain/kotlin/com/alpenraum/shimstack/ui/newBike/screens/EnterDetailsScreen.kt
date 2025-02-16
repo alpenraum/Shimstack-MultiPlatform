@@ -17,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -145,7 +146,7 @@ fun EnterDetailsScreen(
                             expanded = expanded
                         )
                     },
-                    modifier = Modifier.menuAnchor(),
+                    modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
                     colors = ExposedDropdownMenuDefaults.textFieldColors(),
                     isError = state.detailsValidationErrors?.type == false
                 )

@@ -82,7 +82,7 @@ class SetupWizardViewModel(
                 updateSelectedBike(intent.index)
             }
 
-            SetupWizardContract.Intent.OnSeePreviousRecommendationsClick -> {} // TODO
+            SetupWizardContract.Intent.OnSeePreviousRecommendationsClick -> {} // TODO: IMPLEMENT THIS FEATURE
             SetupWizardContract.Intent.OnStartTroubleshootClick -> emitSelectSymptomState()
             is SetupWizardContract.Intent.OnSymptomSelected -> toggleSelectedSymptom(intent.symptom)
             SetupWizardContract.Intent.OnBottomSheetDismissed ->
@@ -92,7 +92,7 @@ class SetupWizardViewModel(
 
             SetupWizardContract.Intent.OnRecommendationAccepted -> onRecommendationAccepted()
 
-            SetupWizardContract.Intent.OnRecommendationDeclined -> TODO()
+            SetupWizardContract.Intent.OnRecommendationDeclined -> onRecommendationDeclined()
             is SetupWizardContract.Intent.OnSymptomConfirmed -> processSetupSymptom(intent.isFront, intent.isHighSpeed)
             is SetupWizardContract.Intent.OnConfirmUpdatedSuspensionPressure ->
                 onConfirmSuspensionPressure(
@@ -103,6 +103,19 @@ class SetupWizardViewModel(
             SetupWizardContract.Intent.OnDismissError -> viewModelScope.launch { emitDefaultState() }
         }
     }
+
+    private fun onRecommendationDeclined() =
+        iOScope.launch {
+            setupRecommendation?.let {
+                try {
+                    setupRecommendationRepository.updateAcceptanceState(it.id ?: -1, false)
+                    emitDefaultState()
+                } catch (e: SQLiteException) {
+                    shimstackLogger.e("error during updating bike based on recommendation", e)
+                    _event.emit(SetupWizardContract.Event.Error)
+                }
+            }
+        }
 
     private fun updateSelectedBike(bikeId: Int) =
         viewModelScope.launch {

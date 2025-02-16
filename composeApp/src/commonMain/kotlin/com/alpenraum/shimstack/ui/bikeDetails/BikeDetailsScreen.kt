@@ -29,6 +29,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -277,7 +278,7 @@ private fun EditBikeHeading(
                         expanded = expanded
                     )
                 },
-                modifier = Modifier.menuAnchor(),
+                modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
                 isError = state.validationFailure?.type == false
             )
