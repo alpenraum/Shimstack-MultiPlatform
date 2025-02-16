@@ -81,7 +81,7 @@ class SetupSymptomViewMapper {
                     )
 
                 SetupSymptom.WALLLOWY -> Pair(Res.string.symptom_wallowy_title, Res.string.symptom_wallowy_description)
-                SetupSymptom.BIKE_TOO_MUCH_COMP ->
+                SetupSymptom.BIKE_UNCOMFORTABLE ->
                     Pair(
                         Res.string.symptom_too_much_comp_title,
                         Res.string.symptom_too_much_comp_description

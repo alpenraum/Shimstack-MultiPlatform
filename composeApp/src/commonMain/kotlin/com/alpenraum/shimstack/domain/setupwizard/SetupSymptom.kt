@@ -31,7 +31,7 @@ enum class SetupSymptom(
 
     BIKE_BLOWS_THROUGH_TRAVEL(requiresSpeed = true, requiresLocation = true), // more compression
 
-    BIKE_TOO_MUCH_COMP(requiresSpeed = true, requiresLocation = true) // less compression
+    BIKE_UNCOMFORTABLE(requiresSpeed = true, requiresLocation = true) // less compression
 }
 
 enum class SetupAnalysisResult {

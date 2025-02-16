@@ -44,3 +44,7 @@ class SetupRecommendation(
             isAccepted = isAccepted
         )
 }
+
+class NoFittingSolutionException(
+    message: String
+) : Exception(message)
