@@ -140,6 +140,7 @@ dependencies {
 }
 
 dependencies {
+    implementation(project(":composeApp"))
     add("kspCommonMainMetadata", libs.koin.annotations.ksp)
     add("kspAndroid", libs.koin.annotations.ksp)
     add("kspIosX64", libs.koin.annotations.ksp)
