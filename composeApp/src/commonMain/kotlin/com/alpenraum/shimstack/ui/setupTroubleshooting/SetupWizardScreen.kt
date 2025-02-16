@@ -82,6 +82,7 @@ import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_button
 import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_button_select_symptom
 import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_label_no_bikes
 import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_label_recommendation_cta
+import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_label_recommendation_error_dismiss
 import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_label_recommendation_header
 import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_label_recommendation_is_front
 import shimstackmultiplatform.composeapp.generated.resources.setup_wizard_label_recommendation_is_high_speed
@@ -184,6 +185,7 @@ fun Content(
                             }
 
                         is SetupWizardContract.State.UpdateSuspensionPressure -> UpdateSuspensionPressure(it, intents = intents)
+                        is SetupWizardContract.State.NoFittingSolution -> NoFittingSolutionContent(intents, Modifier)
                     }
                 }
             }
@@ -213,6 +215,32 @@ private fun StartContent(
         Spacer(Modifier.height(8.dp))
         LargeSecondaryButton(onClick = { intents(SetupWizardContract.Intent.OnSeePreviousRecommendationsClick) }) {
             ButtonText(Res.string.setup_wizard_button_see_history)
+        }
+    }
+}
+
+@Composable
+private fun NoFittingSolutionContent(
+    intents: (SetupWizardContract.Intent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = ":(",
+            style = MaterialTheme.typography.headlineLarge
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "Sorry, but there is no solution on your bike to your problem. Try another problem, maybe that will solve your issue!",
+            style = MaterialTheme.typography.bodyLarge
+        )
+        Spacer(Modifier.height(16.dp))
+        LargeButton(onClick = { intents(SetupWizardContract.Intent.OnDismissError) }) {
+            ButtonText(Res.string.setup_wizard_label_recommendation_error_dismiss)
         }
     }
 }
@@ -345,7 +373,10 @@ fun SetupSymptomList(
             HorizontalDivider()
             AnimatedVisibility(selectedSymptom?.requiresLocation ?: false) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(Res.string.setup_wizard_label_recommendation_is_front), modifier = Modifier.weight(1.0f)) // TODO
+                    Text(
+                        stringResource(Res.string.setup_wizard_label_recommendation_is_front),
+                        modifier = Modifier.weight(1.0f)
+                    ) // TODO
                     Switch(isFront.value, onCheckedChange = { isFront.value = !isFront.value })
                 }
             }

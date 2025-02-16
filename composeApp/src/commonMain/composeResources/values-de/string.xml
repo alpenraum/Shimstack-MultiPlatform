@@ -98,6 +98,7 @@
     <string name="setup_wizard_label_recommendation_decrease">Reduziere %1$s %2$s um</string>
     <string name="setup_wizard_label_recommendation_increase">Erhöhe %1$s %2$s um</string>
     <string name="setup_wizard_label_recommendation_cta">Hat das dein Gefühl verbessert?</string>
+    <string name="setup_wizard_label_recommendation_error_dismiss">Try something else</string>
     <string name="setup_wizard_label_recommendation_is_front">Ist das Problem in der Front?</string>
     <string name="setup_wizard_label_recommendation_is_high_speed">Kommt dieses Problem nur bei harten Schlägen wie Landungen oder Wurzeln vor?</string>
 

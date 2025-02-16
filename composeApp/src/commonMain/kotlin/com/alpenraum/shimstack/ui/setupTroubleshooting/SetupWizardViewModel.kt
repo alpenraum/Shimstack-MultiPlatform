@@ -13,6 +13,7 @@ import com.alpenraum.shimstack.domain.model.bike.Bike
 import com.alpenraum.shimstack.domain.model.measurementunit.MeasurementUnitType
 import com.alpenraum.shimstack.domain.model.measurementunit.Pressure
 import com.alpenraum.shimstack.domain.setupwizard.GetSetupSolutionUseCase
+import com.alpenraum.shimstack.domain.setupwizard.NoFittingSolutionException
 import com.alpenraum.shimstack.domain.setupwizard.SetupRecommendation
 import com.alpenraum.shimstack.domain.setupwizard.SetupSymptom
 import com.alpenraum.shimstack.domain.userSettings.GetUserSettingsUseCase
@@ -98,6 +99,8 @@ class SetupWizardViewModel(
                     intent.front,
                     intent.rear
                 )
+
+            SetupWizardContract.Intent.OnDismissError -> viewModelScope.launch { emitDefaultState() }
         }
     }
 
@@ -224,8 +227,12 @@ class SetupWizardViewModel(
         val front = if (selectedSymptom.setupSymptom.requiresLocation) isFront else false
         val highSpeed = if (selectedSymptom.setupSymptom.requiresSpeed) isHighSpeed else false
 
-        getSetupSolutionUseCase(selectedSymptom.setupSymptom, bike, front, highSpeed)
-        emitDefaultState()
+        try {
+            getSetupSolutionUseCase(selectedSymptom.setupSymptom, bike, front, highSpeed)
+            emitDefaultState()
+        } catch (e: NoFittingSolutionException) {
+            _state.emit(SetupWizardContract.State.NoFittingSolution(bikes.value))
+        }
     }
 
     private fun emitSelectSymptomState() =
@@ -284,6 +291,10 @@ interface SetupWizardContract :
             bikes: ImmutableList<Bike?>
         ) : State(bikes)
 
+        class NoFittingSolution(
+            bikes: ImmutableList<Bike?>
+        ) : State(bikes)
+
         class UpdateSuspensionPressure(
             val showFront: Boolean,
             val showRear: Boolean,
@@ -335,5 +346,7 @@ interface SetupWizardContract :
             val front: TextFieldValue,
             val rear: TextFieldValue
         ) : Intent()
+
+        object OnDismissError : Intent()
     }
 }

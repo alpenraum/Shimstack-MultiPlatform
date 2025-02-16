@@ -108,6 +108,7 @@
     <string name="setup_wizard_label_recommendation_decrease">Decrease %1$s %2$s by</string>
     <string name="setup_wizard_label_recommendation_increase">Increase %1$s %2$s by</string>
     <string name="setup_wizard_label_recommendation_cta">Did this improve your feel?</string>
+    <string name="setup_wizard_label_recommendation_error_dismiss">Try something else</string>
     <string name="setup_wizard_label_recommendation_is_front">Is the problem on the front?</string>
     <string name="setup_wizard_label_recommendation_is_high_speed">Does the issue only happen on hard impacts like landings and roots?</string>
     <string name="setup_wizard_label_updated_sus_pressure">Tell us your new Suspension pressures after changing the sag.</string>
