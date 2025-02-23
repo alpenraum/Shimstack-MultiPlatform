@@ -27,7 +27,7 @@ import androidx.navigation.NavController
 import com.alpenraum.shimstack.base.use
 import com.alpenraum.shimstack.ui.base.compose.components.AttachToLifeCycle
 import com.alpenraum.shimstack.ui.base.compose.components.ShimstackCard
-import com.alpenraum.shimstack.ui.location.model.LocationPermission
+import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import com.alpenraum.shimstack.ui.location.model.getDrawable
 import com.alpenraum.shimstack.ui.location.model.getExplainerResource
@@ -72,9 +72,9 @@ fun PermissionsContent(
         Text(
             "Looks like you didn't grant all permissions.",
             style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Center
         )
-        state.permissions.forEach {
+        state.asList().forEach {
             Permission(
                 it.state,
                 it.permission,
@@ -87,7 +87,7 @@ fun PermissionsContent(
 @Composable
 fun Permission(
     permissionState: PermissionState,
-    permission: LocationPermission,
+    permission: AppPermissions,
     modifier: Modifier
 ) {
     val (containerColor, contentColor) =

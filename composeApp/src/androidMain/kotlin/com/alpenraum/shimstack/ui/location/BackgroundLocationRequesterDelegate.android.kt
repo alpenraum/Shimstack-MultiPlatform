@@ -5,19 +5,15 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import com.alpenraum.shimstack.base.checkPermissions
-import com.alpenraum.shimstack.base.di.BackgroundLocationDelegateName
 import com.alpenraum.shimstack.base.openAppSettingsPage
 import com.alpenraum.shimstack.base.providePermissions
-import com.alpenraum.shimstack.ui.location.model.LocationPermission
+import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
-import org.koin.core.annotation.Single
 
-@Single
-@BackgroundLocationDelegateName
-class BackgroundLocationRequesterDelegate(
+actual class BackgroundLocationRequesterDelegate(
     private val context: Context,
     private val activity: Lazy<Activity>,
-    private val locationForegroundPermissionDelegate: LocationRequesterDelegate
+    private val locationForegroundPermissionDelegate: ForegroundLocationRequesterDelegate
 ) : LocationRequesterDelegate {
     override fun getPermissionState(): PermissionState =
         when (locationForegroundPermissionDelegate.getPermissionState()) {
@@ -39,7 +35,7 @@ class BackgroundLocationRequesterDelegate(
     }
 
     override fun openSettingPage() {
-        context.openAppSettingsPage(LocationPermission.LOCATION_BACKGROUND) {}
+        context.openAppSettingsPage(AppPermissions.LOCATION_BACKGROUND) {}
     }
 }
 

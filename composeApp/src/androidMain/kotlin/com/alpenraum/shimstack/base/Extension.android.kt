@@ -7,7 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
-import com.alpenraum.shimstack.ui.location.model.LocationPermission
+import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 
 internal fun Context.openIntent(
@@ -72,7 +72,7 @@ internal fun Activity.providePermissions(
 }
 
 internal fun Context.openAppSettingsPage(
-    permission: LocationPermission,
+    permission: AppPermissions,
     onError: () -> Unit
 ) {
     openIntent(

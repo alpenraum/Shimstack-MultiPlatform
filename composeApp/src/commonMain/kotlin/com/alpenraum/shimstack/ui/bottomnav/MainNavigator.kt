@@ -17,6 +17,6 @@ class MainNavigator {
         navController: NavController,
         navOptions: NavOptions? = null
     ) {
-        navController.navigate(MainRoute.BottomNav, navOptions = navOptions)
+        navController.navigate(MainRoute.BottomNav(), navOptions = navOptions)
     }
 }

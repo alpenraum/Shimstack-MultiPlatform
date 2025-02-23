@@ -20,4 +20,6 @@ enum class PermissionState {
      * Extension function to check if the permission is not granted
      */
     fun notGranted(): Boolean = this != GRANTED
+
+    fun granted(): Boolean = this == GRANTED
 }

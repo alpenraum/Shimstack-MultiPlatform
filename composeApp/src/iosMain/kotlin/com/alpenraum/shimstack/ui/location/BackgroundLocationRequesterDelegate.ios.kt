@@ -1,16 +1,12 @@
 package com.alpenraum.shimstack.ui.location
 
-import com.alpenraum.shimstack.base.di.BackgroundLocationDelegateName
 import com.alpenraum.shimstack.base.openAppSettingsPage
 import com.alpenraum.shimstack.ui.location.model.PermissionState
-import org.koin.core.annotation.Single
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusDenied
 
-@Single
-@BackgroundLocationDelegateName
-class BackgroundLocationRequesterDelegate(
+actual class BackgroundLocationRequesterDelegate(
     private val locationForegroundPermissionDelegate: LocationRequesterDelegate
 ) : LocationRequesterDelegate {
     override fun getPermissionState(): PermissionState {

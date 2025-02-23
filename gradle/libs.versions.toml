@@ -1,5 +1,5 @@
 [versions]
-agp = "8.5.0"
+agp = "8.5.2"
 android-compileSdk = "35"
 android-minSdk = "24"
 android-targetSdk = "35"
@@ -13,7 +13,7 @@ androidx-material = "1.12.0"
 androidx-test-junit = "1.2.1"
 compose-multiplatform = "1.7.3"
 junit = "4.13.2"
-kotlin = "2.0.20"
+kotlin = "2.1.0"
 androidx-splashscreen = "1.0.1"
 kotlinxDatetime = "0.6.1"
 material-icons-core = "1.7.5"
@@ -26,12 +26,13 @@ kotlinxSerialization = "1.9.0"
 kotlinxCollectionsImmutable = "0.3.8"
 kermit = "2.0.5"
 
+playServicesLocation = "21.3.0"
 sqlite = "2.5.0-SNAPSHOT"
 androidx-room = "2.7.0-beta01"
 datastore = "1.1.2"
 
 # Annotations procesing
-ksp = "2.0.20-1.0.25"
+ksp = "2.1.0-1.0.29"
 
 # ui
 compose-placeholder = "1.0.8"
@@ -67,6 +68,7 @@ koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "
 koin-annotations-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
 
 #kermit
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 touchlab-kermit = { module = "co.touchlab:kermit-core", version.ref = "kermit" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlinx-collections-immutable= { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }

@@ -1,4 +1,4 @@
-package com.alpenraum.shimstack.ui.location
+package com.alpenraum.shimstack.ui.location.model
 
 sealed class LocationResult {
     data class Data(
@@ -7,7 +7,10 @@ sealed class LocationResult {
         val speed: Float,
         val altitude: Double,
         val accuracy: Float
-    ) : LocationResult()
+    ) : LocationResult() {
+        companion object {
+        }
+    }
 
-    class locationDisabled : LocationResult()
+    class LocationDisabled : LocationResult()
 }

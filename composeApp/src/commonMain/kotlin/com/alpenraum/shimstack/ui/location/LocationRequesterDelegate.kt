@@ -9,3 +9,11 @@ interface LocationRequesterDelegate {
 
     fun openSettingPage()
 }
+
+expect class LocationServiceRequesterDelegate : LocationRequesterDelegate
+
+expect class BackgroundLocationRequesterDelegate : LocationRequesterDelegate
+
+expect class ForegroundLocationRequesterDelegate : LocationRequesterDelegate
+
+expect class NotificationRequesterDelegate : LocationRequesterDelegate

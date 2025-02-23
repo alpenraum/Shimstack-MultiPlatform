@@ -3,9 +3,7 @@ package com.alpenraum.shimstack.ui.location
 import android.content.Intent
 import android.os.Build
 import com.alpenraum.shimstack.ShimstackApplication
-import org.koin.core.annotation.Single
 
-@Single
 actual class LocationService {
     actual fun startLocationService() {
         val context = ShimstackApplication.appContext

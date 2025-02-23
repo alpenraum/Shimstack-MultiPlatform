@@ -1,24 +1,21 @@
 package com.alpenraum.shimstack.ui.location
 
-import com.alpenraum.shimstack.base.di.BackgroundLocationDelegateName
-import com.alpenraum.shimstack.base.di.ForegroundLocationDelegateName
-import com.alpenraum.shimstack.base.di.LocationServiceDelegateName
-import com.alpenraum.shimstack.ui.location.model.LocationPermission
+import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
-import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
 
 @Single
 class LocationPermissionManager(
-    @Named(type = ForegroundLocationDelegateName::class) private val foregroundLocationRequesterDelegate:
-        LocationRequesterDelegate,
-    @Named(type = BackgroundLocationDelegateName::class) private val backgroundLocationDelegate: LocationRequesterDelegate,
-    @Named(type = LocationServiceDelegateName::class) private val locationServiceDelegate: LocationRequesterDelegate
+    private val foregroundLocationRequesterDelegate: ForegroundLocationRequesterDelegate,
+    private val backgroundLocationDelegate: BackgroundLocationRequesterDelegate,
+    private val locationServiceDelegate: LocationServiceRequesterDelegate,
+    private val notificationRequesterDelegate: NotificationRequesterDelegate
 ) {
-    fun checkPermission(permission: LocationPermission): PermissionState {
+    fun checkPermission(permission: AppPermissions): PermissionState {
         return try {
             return getPermissionDelegate(permission).getPermissionState()
         } catch (e: Exception) {
@@ -28,16 +25,16 @@ class LocationPermissionManager(
         }
     }
 
-    fun checkPermissionFlow(permission: LocationPermission): Flow<PermissionState> =
+    fun checkPermissionFlow(permission: AppPermissions): Flow<PermissionState> =
         flow {
             while (true) {
                 val permissionState = checkPermission(permission)
                 emit(permissionState)
                 delay(PERMISSION_CHECK_FLOW_FREQUENCY)
             }
-        }
+        }.distinctUntilChanged()
 
-    suspend fun requestPermission(permission: LocationPermission) {
+    suspend fun requestPermission(permission: AppPermissions) {
         try {
             getPermissionDelegate(permission).providePermission()
         } catch (e: Exception) {
@@ -46,7 +43,7 @@ class LocationPermissionManager(
         }
     }
 
-    fun openSettingPage(permission: LocationPermission) {
+    fun openSettingPage(permission: AppPermissions) {
         println("Open settings for permission $permission")
         try {
             getPermissionDelegate(permission).openSettingPage()
@@ -56,11 +53,12 @@ class LocationPermissionManager(
         }
     }
 
-    private fun getPermissionDelegate(permission: LocationPermission): LocationRequesterDelegate =
+    private fun getPermissionDelegate(permission: AppPermissions): LocationRequesterDelegate =
         when (permission) {
-            LocationPermission.LOCATION_SERVICE_ON -> locationServiceDelegate
-            LocationPermission.LOCATION_FOREGROUND -> foregroundLocationRequesterDelegate
-            LocationPermission.LOCATION_BACKGROUND -> backgroundLocationDelegate
+            AppPermissions.LOCATION_SERVICE_ON -> locationServiceDelegate
+            AppPermissions.LOCATION_FOREGROUND -> foregroundLocationRequesterDelegate
+            AppPermissions.LOCATION_BACKGROUND -> backgroundLocationDelegate
+            AppPermissions.SHOW_NOTIFICATIONS -> notificationRequesterDelegate
         }
 
     companion object {

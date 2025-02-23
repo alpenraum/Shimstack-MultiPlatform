@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+    <TextView
+            android:id="@+id/timerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00:00"
+            android:textSize="16sp" />
+
+<!--    <TextView-->
+<!--            android:id="@+id/distanceText"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Distance: 0.0 km"-->
+<!--            android:textSize="14sp"-->
+<!--            android:layout_below="@id/timerText"-->
+<!--            android:layout_marginTop="4dp" />-->
+
+<!--    <TextView-->
+<!--            android:id="@+id/speedText"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Speed: 0.0 km/h"-->
+<!--            android:textSize="14sp"-->
+<!--            android:layout_below="@id/distanceText"-->
+<!--            android:layout_marginTop="4dp" />-->
+</RelativeLayout>

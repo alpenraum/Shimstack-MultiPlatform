@@ -1,7 +1,7 @@
 package com.alpenraum.shimstack.ui.location
 
-import com.alpenraum.shimstack.ui.location.model.LocationPermission
+import com.alpenraum.shimstack.ui.location.model.AppPermissions
 
 class PermissionNotGrantedException(
-    val permission: LocationPermission
+    val permission: AppPermissions
 ) : Exception()
