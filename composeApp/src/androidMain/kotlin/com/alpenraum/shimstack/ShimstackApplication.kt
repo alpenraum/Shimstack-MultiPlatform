@@ -2,6 +2,7 @@ package com.alpenraum.shimstack
 
 import android.app.Application
 import android.content.Context
+import com.alpenraum.shimstack.base.di.GeneratedPlatformModule
 import com.alpenraum.shimstack.base.di.ShimstackGeneratedModule
 import com.alpenraum.shimstack.base.di.databaseModule
 import com.alpenraum.shimstack.base.di.navigationModule
@@ -19,7 +20,13 @@ class ShimstackApplication : Application() {
         appContext = applicationContext
 
         startKoin {
-            modules(navigationModule(), ShimstackGeneratedModule().module, databaseModule(), platformModule())
+            modules(
+                navigationModule(),
+                ShimstackGeneratedModule().module,
+                databaseModule(),
+                platformModule(),
+                GeneratedPlatformModule().module
+            )
         }
     }
 }

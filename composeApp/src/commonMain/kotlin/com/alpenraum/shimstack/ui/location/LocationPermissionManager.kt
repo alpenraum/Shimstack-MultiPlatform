@@ -37,7 +37,7 @@ class LocationPermissionManager(
             }
         }
 
-    suspend fun providePermission(permission: LocationPermission) {
+    suspend fun requestPermission(permission: LocationPermission) {
         try {
             getPermissionDelegate(permission).providePermission()
         } catch (e: Exception) {

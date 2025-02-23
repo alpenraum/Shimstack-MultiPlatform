@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import com.alpenraum.shimstack.ui.base.compose.fadeIn
 import com.alpenraum.shimstack.ui.base.compose.fadeOut
 import com.alpenraum.shimstack.ui.homescreen.HomeScreenFeature
+import com.alpenraum.shimstack.ui.ridetracker.RideTrackerScreen
 import com.alpenraum.shimstack.ui.settingsscreen.SettingsScreen
 import com.alpenraum.shimstack.ui.setupTroubleshooting.SetupWizardScreen
 
@@ -43,6 +44,9 @@ fun BottomNavigationGraph(
         }
         composable(BottomNavigationItem.SetupTroubleshoot.route) {
             SetupWizardScreen(navController = featureNavController)
+        }
+        composable(BottomNavigationItem.RideTracking.route) {
+            RideTrackerScreen(navController = featureNavController)
         }
     }
 }

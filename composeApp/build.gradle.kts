@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
@@ -15,7 +14,6 @@ plugins {
 
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -140,7 +138,6 @@ dependencies {
 }
 
 dependencies {
-    implementation(project(":composeApp"))
     add("kspCommonMainMetadata", libs.koin.annotations.ksp)
     add("kspAndroid", libs.koin.annotations.ksp)
     add("kspIosX64", libs.koin.annotations.ksp)

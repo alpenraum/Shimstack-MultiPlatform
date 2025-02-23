@@ -167,4 +167,15 @@
     <string name="symptom_too_much_comp_title">Bike is uncomfortable</string>
     <string name="symptom_too_much_comp_description">Your sag is good, but the bike feels hard and it's difficult to get deeper into the travel.</string>
 
+
+    <string name="permission_foreground_name">GPS tracking</string>
+    <string name="permission_foreground_explainer">So that Shimstack can track your ride.</string>
+    <string name="permission_background_name">GPS in the background</string>
+    <string name="permission_background_explainer">So your ride is tracked even if the app is in the background.</string>
+    <string name="permission_location_name">Location service</string>
+    <string name="permission_location_explainer">Location services need to be turned on.</string>
+
+    <string name="ride_tracking_name">Ride tracker</string>
+
+
 </resources>
