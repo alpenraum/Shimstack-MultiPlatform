@@ -10,8 +10,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.util.Consumer
+import androidx.lifecycle.lifecycleScope
 import com.alpenraum.shimstack.ui.base.navigation.DeeplinkManager
 import com.alpenraum.shimstack.ui.base.navigation.NavigationTarget
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -22,10 +24,13 @@ class MainActivity :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-
         enableEdgeToEdge()
 
         super.onCreate(savedInstanceState)
+
+        if (intent.hasExtra(DeeplinkManager.NAV_ARG)) {
+            handleDeeplinkIntent(intent)
+        }
 
         setContent {
             App()
@@ -44,8 +49,11 @@ class MainActivity :
     private fun handleDeeplinkIntent(intent: Intent) =
         intent.extras?.getString(DeeplinkManager.NAV_ARG)?.let {
             NavigationTarget.valueOfIgnoreCase(it)?.let { target ->
-                deeplinkManager.onNewNavigationAction(target)
+                lifecycleScope.launch {
+                    deeplinkManager.onNewNavigationAction(target)
+                }
             }
+            intent.removeExtra(DeeplinkManager.NAV_ARG)
         }
 }
 

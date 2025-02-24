@@ -26,6 +26,6 @@ fun navigationModule() =
         } bind NavDestinationDefinition::class
 
         viewModel {
-            NavViewModel(get(named("startDestinationRoute")))
+            NavViewModel(get(named("startDestinationRoute")), get())
         }
     }

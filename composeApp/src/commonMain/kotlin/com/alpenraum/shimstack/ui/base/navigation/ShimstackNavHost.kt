@@ -1,14 +1,13 @@
 package com.alpenraum.shimstack.ui.base.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.alpenraum.shimstack.base.di.KoinViewModel
 import com.alpenraum.shimstack.ui.bottomnav.MainRoute
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 class NavViewModel(
@@ -25,12 +24,6 @@ fun ShimstackNavHost(
     viewModel: NavViewModel = koinViewModel()
 ) {
     val destinationBuilders = viewModel.destinationBuilders
-    viewModel.viewModelScope.launch {
-        viewModel.deeplinkManager.navigationAction.collectLatest {
-            navController.navigate(MainRoute.BottomNav(subTarget = it))
-        }
-    }
-
     NavHost(
         navController = navController,
         startDestination = viewModel.startDestinationRoute,
@@ -38,6 +31,13 @@ fun ShimstackNavHost(
     ) {
         destinationBuilders.forEach { navGraphDefinition ->
             navGraphDefinition.build(navGraphBuilder = this, navController)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.deeplinkManager.navigationAction.collectLatest {
+            if (it == null) return@collectLatest
+            navController.navigate(MainRoute.BottomNav(subTarget = it))
         }
     }
 }

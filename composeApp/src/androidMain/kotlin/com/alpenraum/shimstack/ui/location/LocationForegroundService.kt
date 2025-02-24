@@ -207,7 +207,6 @@ class LocationForegroundService :
                 stopIntent,
                 PendingIntent.FLAG_IMMUTABLE
             )
-        // TODO: TEST DEEPLINK
         val notificationIntent =
             Intent(this, MainActivity::class.java).apply {
                 action = Intent.ACTION_VIEW

@@ -6,12 +6,12 @@ import org.koin.core.annotation.Single
 
 @Single
 class DeeplinkManager {
-    private val _navigationAction = MutableSharedFlow<NavigationTarget>()
+    private val _navigationAction = MutableSharedFlow<NavigationTarget?>()
 
     val navigationAction = _navigationAction.asSharedFlow()
 
-    fun onNewNavigationAction(target: NavigationTarget) {
-        _navigationAction.tryEmit(target)
+    suspend fun onNewNavigationAction(target: NavigationTarget) {
+        _navigationAction.emit(target)
     }
 
     companion object {
