@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.IBinder
 import android.text.format.DateUtils
 import android.util.Log
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -76,6 +77,12 @@ class LocationForegroundService :
     private var fusedClient: FusedLocationProviderClient? = null
     private var locationUpdateListener: LocationCallback? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        remoteView =
+            RemoteViews(packageName, R.layout.notification_layout)
+    }
+
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,
@@ -107,6 +114,7 @@ class LocationForegroundService :
                 getLocationUpdates().collect {
                     // TODO - STORE IN DB
                     gpsAcquired = true
+                    showTimer()
                     Log.d("___", " New location: $it")
                 }
             }
@@ -140,7 +148,7 @@ class LocationForegroundService :
             val serviceChannel =
                 NotificationChannel(
                     CHANNEL_ID,
-                    "TODO: Location Service Channel", // TODO
+                    getString(R.string.notification_channel_name),
                     NotificationManager.IMPORTANCE_HIGH
                 )
             notificationManager.createNotificationChannel(serviceChannel)
@@ -194,8 +202,6 @@ class LocationForegroundService :
             .build()
 
     private fun getNotification(): Notification {
-        remoteView = RemoteViews(packageName, R.layout.notification_layout)
-
         val stopIntent =
             Intent(this, LocationForegroundService::class.java).apply {
                 action = ACTION_STOP
@@ -226,8 +232,9 @@ class LocationForegroundService :
                 .Builder(this, CHANNEL_ID)
                 .setStyle(NotificationCompat.DecoratedCustomViewStyle())
                 .setContentIntent(pendingIntent)
-                .setSmallIcon(R.drawable.ic_monochrome)
-                .setCustomContentView(remoteView)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setCustomContentView(remoteView) // TODO: ADD SPECIFIC VIEW FOR COLLAPSED
+                .setCustomBigContentView(remoteView)
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .addAction(R.drawable.ic_launcher_foreground, getString(R.string.stop), stopPendingIntent)
@@ -239,7 +246,14 @@ class LocationForegroundService :
 
     private fun updateTimer(seconds: Long) {
         val timerText = DateUtils.formatElapsedTime(seconds)
-        remoteView?.setTextViewText(R.id.timerText, timerText)
+        remoteView?.setTextViewText(R.id.timer_text, timerText)
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun showTimer() {
+        remoteView?.setViewVisibility(R.id.progress_spinner, View.GONE)
+        remoteView?.setViewVisibility(R.id.content, View.VISIBLE)
 
         notificationManager.notify(NOTIFICATION_ID, notification)
     }

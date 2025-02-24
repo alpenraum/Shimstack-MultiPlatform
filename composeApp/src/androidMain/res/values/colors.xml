@@ -60,4 +60,8 @@
     <color name="md_theme_dark_surfaceTint">#9ED67C</color>
     <color name="md_theme_dark_outlineVariant">#43483E</color>
     <color name="md_theme_dark_scrim">#000000</color>
+
+
+
+    <color name="color_notification_content">@color/md_theme_light_onSurface</color>
 </resources>

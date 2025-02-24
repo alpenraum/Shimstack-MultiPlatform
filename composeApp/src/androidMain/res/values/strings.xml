@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">Shimstack</string>
     <string name="stop">Stop ride</string>
+    <string name="notification_channel_name" translatable="false">Shimstack Ride Tracker</string>
 </resources>
