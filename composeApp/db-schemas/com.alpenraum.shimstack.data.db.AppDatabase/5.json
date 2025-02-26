@@ -1,0 +1,496 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "0533f5e63faac86ff63943026ff28a69",
+    "entities": [
+      {
+        "tableName": "user_bikes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `type` INTEGER NOT NULL, `isEBike` INTEGER NOT NULL, `front_suspension_pressure` REAL, `front_suspension_sag` REAL, `front_suspension_tokens` INTEGER, `front_suspension_travel` INTEGER, `front_suspension_compression_lowSpeedFromClosed` INTEGER, `front_suspension_compression_highSpeedFromClosed` INTEGER, `front_suspension_rebound_lowSpeedFromClosed` INTEGER, `front_suspension_rebound_highSpeedFromClosed` INTEGER, `rear_suspension_pressure` REAL, `rear_suspension_sag` REAL, `rear_suspension_tokens` INTEGER, `rear_suspension_travel` INTEGER, `rear_suspension_compression_lowSpeedFromClosed` INTEGER, `rear_suspension_compression_highSpeedFromClosed` INTEGER, `rear_suspension_rebound_lowSpeedFromClosed` INTEGER, `rear_suspension_rebound_highSpeedFromClosed` INTEGER, `front_tire_pressure` REAL NOT NULL, `front_tire_widthInMM` REAL NOT NULL, `front_tire_internalRimWidthInMM` REAL, `rear_tire_pressure` REAL NOT NULL, `rear_tire_widthInMM` REAL NOT NULL, `rear_tire_internalRimWidthInMM` REAL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEBike",
+            "columnName": "isEBike",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontSuspension.pressure",
+            "columnName": "front_suspension_pressure",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "frontSuspension.sag",
+            "columnName": "front_suspension_sag",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "frontSuspension.tokens",
+            "columnName": "front_suspension_tokens",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontSuspension.travel",
+            "columnName": "front_suspension_travel",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontSuspension.compression.lowSpeedFromClosed",
+            "columnName": "front_suspension_compression_lowSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontSuspension.compression.highSpeedFromClosed",
+            "columnName": "front_suspension_compression_highSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontSuspension.rebound.lowSpeedFromClosed",
+            "columnName": "front_suspension_rebound_lowSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontSuspension.rebound.highSpeedFromClosed",
+            "columnName": "front_suspension_rebound_highSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearSuspension.pressure",
+            "columnName": "rear_suspension_pressure",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rearSuspension.sag",
+            "columnName": "rear_suspension_sag",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rearSuspension.tokens",
+            "columnName": "rear_suspension_tokens",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearSuspension.travel",
+            "columnName": "rear_suspension_travel",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearSuspension.compression.lowSpeedFromClosed",
+            "columnName": "rear_suspension_compression_lowSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearSuspension.compression.highSpeedFromClosed",
+            "columnName": "rear_suspension_compression_highSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearSuspension.rebound.lowSpeedFromClosed",
+            "columnName": "rear_suspension_rebound_lowSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearSuspension.rebound.highSpeedFromClosed",
+            "columnName": "rear_suspension_rebound_highSpeedFromClosed",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontTire.pressure",
+            "columnName": "front_tire_pressure",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontTire.widthInMM",
+            "columnName": "front_tire_widthInMM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontTire.internalRimWidthInMM",
+            "columnName": "front_tire_internalRimWidthInMM",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rearTire.pressure",
+            "columnName": "rear_tire_pressure",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rearTire.widthInMM",
+            "columnName": "rear_tire_widthInMM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rearTire.internalRimWidthInMM",
+            "columnName": "rear_tire_internalRimWidthInMM",
+            "affinity": "REAL"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "template_bikes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` TEXT NOT NULL, `type` INTEGER NOT NULL, `isEBike` INTEGER NOT NULL, `frontSuspensionTravelInMM` INTEGER NOT NULL, `rearSuspensionTravelInMM` INTEGER NOT NULL, `frontTireWidthInMM` REAL NOT NULL, `frontRimWidthInMM` REAL NOT NULL, `rearTireWidthInMM` REAL NOT NULL, `rearRimWidthInMM` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isEBike",
+            "columnName": "isEBike",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontSuspensionTravelInMM",
+            "columnName": "frontSuspensionTravelInMM",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rearSuspensionTravelInMM",
+            "columnName": "rearSuspensionTravelInMM",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontTireWidthInMM",
+            "columnName": "frontTireWidthInMM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontRimWidthInMM",
+            "columnName": "frontRimWidthInMM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rearTireWidthInMM",
+            "columnName": "rearTireWidthInMM",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rearRimWidthInMM",
+            "columnName": "rearRimWidthInMM",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "setup_recommendation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `bikeId` INTEGER NOT NULL, `wizardSession` TEXT NOT NULL, `creation_epoch_seconds` INTEGER NOT NULL, `frontTirePressureDelta` REAL, `rearTirePressureDelta` REAL, `frontSagDelta` REAL, `rearSagDelta` REAL, `frontHSCDelta` INTEGER, `rearHSCDelta` INTEGER, `frontLSCDelta` INTEGER, `rearLSCDelta` INTEGER, `frontHSRDelta` INTEGER, `rearHSRDelta` INTEGER, `frontLSRDelta` INTEGER, `rearLSRDelta` INTEGER, `frontTokenDelta` INTEGER, `rearTokenDelta` INTEGER, `isAccepted` INTEGER, FOREIGN KEY(`bikeId`) REFERENCES `user_bikes`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "bikeId",
+            "columnName": "bikeId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wizardSession",
+            "columnName": "wizardSession",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "creation_epoch_seconds",
+            "columnName": "creation_epoch_seconds",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frontTirePressureDelta",
+            "columnName": "frontTirePressureDelta",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rearTirePressureDelta",
+            "columnName": "rearTirePressureDelta",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "frontSagDelta",
+            "columnName": "frontSagDelta",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "rearSagDelta",
+            "columnName": "rearSagDelta",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "frontHSCDelta",
+            "columnName": "frontHSCDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearHSCDelta",
+            "columnName": "rearHSCDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontLSCDelta",
+            "columnName": "frontLSCDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearLSCDelta",
+            "columnName": "rearLSCDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontHSRDelta",
+            "columnName": "frontHSRDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearHSRDelta",
+            "columnName": "rearHSRDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontLSRDelta",
+            "columnName": "frontLSRDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearLSRDelta",
+            "columnName": "rearLSRDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "frontTokenDelta",
+            "columnName": "frontTokenDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rearTokenDelta",
+            "columnName": "rearTokenDelta",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "isAccepted",
+            "columnName": "isAccepted",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_setup_recommendation_bikeId",
+            "unique": false,
+            "columnNames": [
+              "bikeId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_setup_recommendation_bikeId` ON `${TABLE_NAME}` (`bikeId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "user_bikes",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "bikeId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "rides",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`rideId` INTEGER PRIMARY KEY AUTOINCREMENT, `startTime` TEXT NOT NULL, `endTime` TEXT, `totalDistance` REAL NOT NULL, `totalElevation` REAL NOT NULL, `averageSpeed` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "rideId",
+            "columnName": "rideId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "startTime",
+            "columnName": "startTime",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endTime",
+            "columnName": "endTime",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "totalDistance",
+            "columnName": "totalDistance",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalElevation",
+            "columnName": "totalElevation",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "averageSpeed",
+            "columnName": "averageSpeed",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "rideId"
+          ]
+        }
+      },
+      {
+        "tableName": "gps_points",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `rideId` INTEGER NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `altitude` REAL NOT NULL, `speed` REAL NOT NULL, `accuracy` REAL NOT NULL, `timestamp` TEXT NOT NULL, FOREIGN KEY(`rideId`) REFERENCES `rides`(`rideId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rideId",
+            "columnName": "rideId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "altitude",
+            "columnName": "altitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speed",
+            "columnName": "speed",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accuracy",
+            "columnName": "accuracy",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_gps_points_rideId",
+            "unique": false,
+            "columnNames": [
+              "rideId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_gps_points_rideId` ON `${TABLE_NAME}` (`rideId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "rides",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "rideId"
+            ],
+            "referencedColumns": [
+              "rideId"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0533f5e63faac86ff63943026ff28a69')"
+    ]
+  }
+}

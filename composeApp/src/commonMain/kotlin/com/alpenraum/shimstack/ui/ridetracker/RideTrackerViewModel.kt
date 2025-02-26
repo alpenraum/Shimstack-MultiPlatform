@@ -4,6 +4,7 @@ import androidx.navigation.NavController
 import com.alpenraum.shimstack.base.BaseViewModel
 import com.alpenraum.shimstack.base.DispatchersProvider
 import com.alpenraum.shimstack.base.UnidirectionalViewModel
+import com.alpenraum.shimstack.domain.ridetracker.RideTrackerRepository
 import com.alpenraum.shimstack.ui.location.LocationPermissionManager
 import com.alpenraum.shimstack.ui.location.LocationService
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
@@ -20,10 +21,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 
+// TODO: VISUALISE RIDE DATA IF ACTIVE
 @KoinViewModel
 class RideTrackerViewModel(
     private val locationService: LocationService,
     private val locationPermissionManager: LocationPermissionManager,
+    private val rideTrackerRepository: RideTrackerRepository,
     dispatchersProvider: DispatchersProvider
 ) : BaseViewModel(dispatchersProvider),
     RideTrackerContract {
@@ -41,6 +44,8 @@ class RideTrackerViewModel(
         when (intent) {
             RideTrackerContract.Intent.StartTracking -> startLocationTracking()
             is RideTrackerContract.Intent.RequestPermission -> requestPermission(intent.permission)
+            RideTrackerContract.Intent.OnContinueExistingRide -> viewModelScope.launch { continueExistingRide() }
+            RideTrackerContract.Intent.OnStartNewRide -> viewModelScope.launch { startNewRide() }
         }
     }
 
@@ -133,22 +138,31 @@ class RideTrackerViewModel(
             }
         }
 
-    // TODO - Explainer screen that shows missing permissions and updates them in real time using locationManager.checkPermissionFlow()
     private fun startLocationTracking() =
         viewModelScope.launch {
-//            requestPermission(LocationPermission.LOCATION_FOREGROUND)
-//            requestPermission(LocationPermission.LOCATION_BACKGROUND)
-//            requestPermission(LocationPermission.LOCATION_SERVICE_ON)
-
             if (state.value is RideTrackerContract.State.Permissions
             ) {
                 // TODO show error
                 return@launch
             }
             if (!locationService.isLocationServiceActive()) {
-                locationService.startLocationService()
+                if (rideTrackerRepository.getActiveRide() != null) {
+                    _event.emit(RideTrackerContract.Event.ShowContinueExistingRideDialog)
+                } else {
+                    startNewRide()
+                }
             }
         }
+
+    private suspend fun startNewRide() {
+        val ride = rideTrackerRepository.createNewRide()
+        ride.rideId?.let { locationService.startLocationService(it) }
+    }
+
+    private suspend fun continueExistingRide() {
+        val ride = rideTrackerRepository.getActiveRide()
+        ride?.rideId?.let { locationService.startLocationService(it) }
+    }
 }
 
 interface RideTrackerContract :
@@ -179,7 +193,9 @@ interface RideTrackerContract :
         val permission: AppPermissions
     )
 
-    sealed class Event
+    sealed class Event {
+        object ShowContinueExistingRideDialog : Event()
+    }
 
     sealed interface Intent {
         object StartTracking : Intent
@@ -187,5 +203,9 @@ interface RideTrackerContract :
         class RequestPermission(
             val permission: AppPermissions
         ) : Intent
+
+        object OnContinueExistingRide : Intent
+
+        object OnStartNewRide : Intent
     }
 }

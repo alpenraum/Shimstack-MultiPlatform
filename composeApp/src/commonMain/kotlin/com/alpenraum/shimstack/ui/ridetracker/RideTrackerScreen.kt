@@ -17,6 +17,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
@@ -26,14 +31,20 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.alpenraum.shimstack.base.use
 import com.alpenraum.shimstack.ui.base.compose.components.AttachToLifeCycle
+import com.alpenraum.shimstack.ui.base.compose.components.ShimstackAlertDialog
 import com.alpenraum.shimstack.ui.base.compose.components.ShimstackCard
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import com.alpenraum.shimstack.ui.location.model.getDrawable
 import com.alpenraum.shimstack.ui.location.model.getExplainerResource
 import com.alpenraum.shimstack.ui.location.model.getNameResource
+import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import shimstackmultiplatform.composeapp.generated.resources.Res
+import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog
+import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog_accept
+import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog_decline
 
 @Composable
 fun RideTrackerScreen(
@@ -42,7 +53,32 @@ fun RideTrackerScreen(
     viewModel: RideTrackerViewModel = koinViewModel()
 ) {
     AttachToLifeCycle(viewModel = viewModel)
-    val (state, intents, _) = use(viewModel = viewModel, navController)
+    val (state, intents, events) = use(viewModel = viewModel, navController)
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    ShimstackAlertDialog(
+        showDialog,
+        text = Res.string.ride_tracker_last_ride_dialog,
+        confirmLabel = Res.string.ride_tracker_last_ride_dialog_accept,
+        dismissLabel = Res.string.ride_tracker_last_ride_dialog_decline,
+        onConfirm = {
+            showDialog = false
+            intents(RideTrackerContract.Intent.OnContinueExistingRide)
+        },
+        onDismiss = {
+            showDialog = false
+            intents(RideTrackerContract.Intent.OnStartNewRide)
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        events.collectLatest {
+            when (it) {
+                RideTrackerContract.Event.ShowContinueExistingRideDialog -> showDialog = true
+            }
+        }
+    }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp).verticalScroll(rememberScrollState())
     ) {

@@ -51,6 +51,7 @@
     <string name="label_yes">Ja</string>
     <string name="label_no">Nein</string>
     <string name="label_done">Fertig</string>
+    <string name="label_cancel" >Abbrechen</string>
     <string name="label_edit">Ändern</string>
     <string name="label_delete">Löschen</string>
     <string name="label_save">Speichern</string>
@@ -165,7 +166,10 @@
     <string name="permission_location_name">Ortungsservice</string>
     <string name="permission_location_explainer">Das GPS von deinem Gerät muss angeschalten sein.</string>
     <string name="permission_notification_name">Benachrichtigungen</string>
-    <string name="permission_notification_explainer">While your ride is being recorded, you will see the current status in a notification.</string>
+    <string name="permission_notification_explainer">Während dein Ride aufgezeichnet wird, siehst du den aktuellen Stand in einer Benachrichtigung</string>
 
     <string name="ride_tracking_name">Ride Tracker</string>
+    <string name="ride_tracker_last_ride_dialog">Es schaut so aus, als wäre dein letzter Ride nie fertiggestellt geworden. Magst du ihn fortsetzen oder einen neuen starten?</string>
+    <string name="ride_tracker_last_ride_dialog_accept">Ride fortsetzen</string>
+    <string name="ride_tracker_last_ride_dialog_decline">Neuen Ride starten</string>
 </resources>

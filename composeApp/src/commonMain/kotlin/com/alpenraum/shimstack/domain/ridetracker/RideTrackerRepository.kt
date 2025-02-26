@@ -1,0 +1,20 @@
+package com.alpenraum.shimstack.domain.ridetracker
+
+import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
+import com.alpenraum.shimstack.domain.model.ridetracker.Ride
+
+interface RideTrackerRepository {
+    suspend fun createNewRide(): Ride
+
+    suspend fun updateRide(ride: Ride)
+
+    suspend fun finishRide(ride: Ride)
+
+    suspend fun getRide(rideId: Long): Ride?
+
+    suspend fun insertGpsPoints(list: List<GpsPoint>)
+
+    suspend fun getGpsPointsForRide(rideId: Long): List<GpsPoint>
+
+    suspend fun getActiveRide(): Ride?
+}

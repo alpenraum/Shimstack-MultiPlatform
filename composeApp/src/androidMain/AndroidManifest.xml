@@ -31,7 +31,7 @@
             </intent-filter>
         </activity>
         <service
-                android:name=".ui.location.LocationForegroundService"
+                android:name=".ui.location.RideTrackerForegroundService"
                 android:exported="false"
                 android:foregroundServiceType="location"></service>
     </application>

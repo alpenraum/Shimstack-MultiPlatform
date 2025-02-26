@@ -13,7 +13,6 @@ import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.text.format.DateUtils
-import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -24,12 +23,13 @@ import com.alpenraum.shimstack.MainActivity
 import com.alpenraum.shimstack.R
 import com.alpenraum.shimstack.ShimstackApplication
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.domain.ridetracker.RideTrackerCache
+import com.alpenraum.shimstack.domain.ridetracker.RideTrackerRepository
 import com.alpenraum.shimstack.ui.base.navigation.DeeplinkManager
 import com.alpenraum.shimstack.ui.base.navigation.NavigationTarget
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.LocationResult
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationAvailability
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
@@ -43,19 +43,23 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.math.roundToInt
 
-class LocationForegroundService :
+class RideTrackerForegroundService :
     Service(),
     KoinComponent {
     private val logger: ShimstackLogger by inject()
+    private val rideTrackerRepository: RideTrackerRepository by inject()
 
     companion object {
         private const val TAG = "LocationForegroundService"
         private const val CHANNEL_ID = "1"
         private const val NOTIFICATION_ID = 100
         private const val LOCATION_UPDATE_INTERVAL = 1000L
+        const val EXTRA_RIDE_ID = "RIDE_ID"
 
         private var isActive: Boolean = false
 
@@ -77,6 +81,8 @@ class LocationForegroundService :
     private var fusedClient: FusedLocationProviderClient? = null
     private var locationUpdateListener: LocationCallback? = null
 
+    private lateinit var rideTrackerCache: RideTrackerCache
+
     override fun onCreate() {
         super.onCreate()
         remoteView =
@@ -94,51 +100,71 @@ class LocationForegroundService :
             isActive = false
             return START_NOT_STICKY
         }
-        if (!isActive) {
-            createNotificationChannel()
-
-            notification = getNotification()
-            ServiceCompat
-                .startForeground(
-                    this,
-                    NOTIFICATION_ID,
-                    notification!!,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-                    } else {
-                        0
-                    }
-                )
-            var gpsAcquired = false
-            scope.launch {
-                getLocationUpdates().collect {
-                    // TODO - STORE IN DB
-                    gpsAcquired = true
-                    showTimer()
-                    Log.d("___", " New location: $it")
+        scope.launch {
+            val ride =
+                if (intent?.hasExtra(EXTRA_RIDE_ID) == true) {
+                    rideTrackerRepository.getRide(intent.getLongExtra(EXTRA_RIDE_ID, -1)) ?: rideTrackerRepository.createNewRide()
+                } else {
+                    rideTrackerRepository.createNewRide()
                 }
-            }
-            scope.launch {
-                var seconds = 0L
-                while (true) {
-                    if (gpsAcquired) {
-                        seconds++
-                        updateTimer(seconds)
-                        delay(1000L)
+            rideTrackerCache = RideTrackerCache(ride)
+
+            if (!isActive) {
+                createNotificationChannel()
+
+                notification = getNotification()
+                ServiceCompat
+                    .startForeground(
+                        this@RideTrackerForegroundService,
+                        NOTIFICATION_ID,
+                        notification!!,
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                        } else {
+                            0
+                        }
+                    )
+                var gpsAcquired = false
+                scope.launch {
+                    getLocationUpdates().collect {
+                        gpsAcquired = true
+                        showTimer()
+
+                        rideTrackerCache.addNewGpsPoint(it)
                     }
                 }
-            }
+                scope.launch {
+                    var seconds = 0L
+                    while (true) {
+                        if (gpsAcquired) {
+                            val start = Clock.System.now().toEpochMilliseconds()
+                            seconds++
+                            updateTimer(seconds)
+                            updateDistance(rideTrackerCache.totalDistance)
+                            updateElevation(rideTrackerCache.totalElevation)
 
-            isActive = true
+                            delay(1000L - (Clock.System.now().toEpochMilliseconds() - start))
+                        }
+                    }
+                }
+
+                isActive = true
+            }
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onDestroy() {
         locationUpdateListener?.let { fusedClient?.removeLocationUpdates(it) }
-        scope.cancel()
-        isActive = false
-        super.onDestroy()
+        val onDbFinished = {
+            scope.cancel()
+            isActive = false
+            super.onDestroy()
+        }
+        scope.launch {
+            rideTrackerCache.finishRide()
+            onDbFinished()
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -170,13 +196,8 @@ class LocationForegroundService :
                     override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
                         logger.d("received " + locationResult.locations.size + " locations", tag = TAG)
                         for (loc in locationResult.locations) {
-                            trySend(LocationResult.Data.fromLocation(loc))
+                            trySend(LocationResult.fromLocation(loc))
                         }
-                    }
-
-                    override fun onLocationAvailability(p0: LocationAvailability) {
-                        logger.d("locationAvailability is ${p0.isLocationAvailable}", tag = TAG)
-                        super.onLocationAvailability(p0)
                     }
                 }
 
@@ -184,7 +205,7 @@ class LocationForegroundService :
 
             fusedClient?.lastLocation?.addOnSuccessListener { location ->
                 if (location != null) {
-                    trySend(LocationResult.Data.fromLocation(location))
+                    trySend(LocationResult.fromLocation(location))
                 }
             }
 
@@ -203,7 +224,7 @@ class LocationForegroundService :
 
     private fun getNotification(): Notification {
         val stopIntent =
-            Intent(this, LocationForegroundService::class.java).apply {
+            Intent(this, RideTrackerForegroundService::class.java).apply {
                 action = ACTION_STOP
             }
         val stopPendingIntent =
@@ -226,7 +247,6 @@ class LocationForegroundService :
                 PendingIntent.FLAG_IMMUTABLE
             )
         // TODO: MAKE NOTIFICATION VIEW BETTER
-        // TODO: ADD INITIAL LOADING UNTIL GPS TRACK IS ACTIVE
         val builder =
             NotificationCompat
                 .Builder(this, CHANNEL_ID)
@@ -251,6 +271,20 @@ class LocationForegroundService :
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
+    private fun updateDistance(distance: Float) {
+        val distanceText = "${distance.roundToInt()} m" // TODO correct measurement
+        remoteView?.setTextViewText(R.id.distance_text, distanceText)
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun updateElevation(elevation: Float) {
+        val elevationText = "${elevation.roundToInt()} m" // TODO correct measurement
+        remoteView?.setTextViewText(R.id.elevation_text, elevationText)
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
     private fun showTimer() {
         remoteView?.setViewVisibility(R.id.progress_spinner, View.GONE)
         remoteView?.setViewVisibility(R.id.content, View.VISIBLE)
@@ -259,11 +293,12 @@ class LocationForegroundService :
     }
 }
 
-private fun LocationResult.Data.Companion.fromLocation(location: Location) =
-    LocationResult.Data(
+private fun LocationResult.Companion.fromLocation(location: Location) =
+    LocationResult(
         latitude = location.latitude,
         longitude = location.longitude,
         speed = location.speed,
         altitude = location.altitude,
-        accuracy = location.accuracy
+        accuracy = location.accuracy,
+        timestampUnixMs = location.time
     )

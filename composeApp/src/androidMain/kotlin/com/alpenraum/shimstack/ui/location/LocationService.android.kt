@@ -5,9 +5,12 @@ import android.os.Build
 import com.alpenraum.shimstack.ShimstackApplication
 
 actual class LocationService {
-    actual fun startLocationService() {
+    actual fun startLocationService(rideId: Long) {
         val context = ShimstackApplication.appContext
-        val intent = Intent(context, LocationForegroundService::class.java)
+        val intent =
+            Intent(context, RideTrackerForegroundService::class.java).apply {
+                putExtra(RideTrackerForegroundService.EXTRA_RIDE_ID, rideId)
+            }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent)
         } else {
@@ -15,5 +18,5 @@ actual class LocationService {
         }
     }
 
-    actual fun isLocationServiceActive(): Boolean = LocationForegroundService.isActive()
+    actual fun isLocationServiceActive(): Boolean = RideTrackerForegroundService.isActive()
 }
