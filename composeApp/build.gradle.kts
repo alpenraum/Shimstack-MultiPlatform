@@ -122,6 +122,11 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            manifestPlaceholders["app_name"] = "@string/app_name"
+        }
+        getByName("debug") {
+            applicationIdSuffix = ".dev"
+            manifestPlaceholders["app_name"] = "@string/app_name_debug"
         }
     }
     compileOptions {
