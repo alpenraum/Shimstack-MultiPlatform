@@ -2,7 +2,7 @@ package com.alpenraum.shimstack.domain.model.ridetracker
 
 import kotlinx.datetime.Instant
 
-class GpsPoint(
+data class GpsPoint(
     val id: Long? = null,
     val rideId: Long,
     val latitude: Double,

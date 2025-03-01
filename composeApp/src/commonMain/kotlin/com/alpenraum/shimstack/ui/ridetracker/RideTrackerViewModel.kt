@@ -4,12 +4,15 @@ import androidx.navigation.NavController
 import com.alpenraum.shimstack.base.BaseViewModel
 import com.alpenraum.shimstack.base.DispatchersProvider
 import com.alpenraum.shimstack.base.UnidirectionalViewModel
+import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
 import com.alpenraum.shimstack.domain.ridetracker.RideTrackerRepository
 import com.alpenraum.shimstack.ui.location.LocationPermissionManager
 import com.alpenraum.shimstack.ui.location.LocationService
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -17,8 +20,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import org.koin.android.annotation.KoinViewModel
 
 // TODO: VISUALISE RIDE DATA IF ACTIVE
@@ -27,6 +34,7 @@ class RideTrackerViewModel(
     private val locationService: LocationService,
     private val locationPermissionManager: LocationPermissionManager,
     private val rideTrackerRepository: RideTrackerRepository,
+    private val shimstackLogger: ShimstackLogger,
     dispatchersProvider: DispatchersProvider
 ) : BaseViewModel(dispatchersProvider),
     RideTrackerContract {
@@ -49,56 +57,78 @@ class RideTrackerViewModel(
         }
     }
 
+    private var permissionJob: Job? = null
+
     override fun onStart() {
+        permissionJob =
+            iOScope.launch {
+                combine(
+                    locationPermissionManager
+                        .checkPermissionFlow(AppPermissions.LOCATION_FOREGROUND),
+                    locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_BACKGROUND),
+                    locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_SERVICE_ON),
+                    locationPermissionManager.checkPermissionFlow(AppPermissions.SHOW_NOTIFICATIONS)
+                ) { foreground, background, location, notification ->
+                    listOf(foreground, background, location, notification)
+                }.collectLatest {
+                    updatePermissionState(it[0], it[1], it[2], it[3])
+                }
+            }
+
         iOScope.launch {
-            collectPermissionState(AppPermissions.LOCATION_FOREGROUND)
-        }
-        iOScope.launch {
-            collectPermissionState(AppPermissions.LOCATION_BACKGROUND)
-        }
-        iOScope.launch {
-            collectPermissionState(AppPermissions.LOCATION_SERVICE_ON)
+            if (locationService.isLocationServiceActive()) {
+                triggerActiveRideCollection()
+            }
         }
     }
 
-    private suspend fun collectPermissionState(appPermissions: AppPermissions) =
-        locationPermissionManager.checkPermissionFlow(appPermissions).collectLatest {
-            updatePermissionState(it, appPermissions)
-        }
+    override fun onStop() {
+        super.onStop()
+        permissionJob?.cancel()
+    }
 
-    private inline fun updatePermissionState(
-        permissionState: PermissionState,
-        appPermissions: AppPermissions
+    private suspend fun triggerActiveRideCollection(activeRideId: Long? = null) {
+        (activeRideId ?: rideTrackerRepository.getActiveRide()?.rideId)?.let {
+            shimstackLogger.d("starting ride UI for id: $it")
+            rideTrackerRepository
+                .getRideFlow(it)
+                .combine(rideTrackerRepository.getGpsPointsForRideFlow(it)) { ride, gpsPoints ->
+                    ride to gpsPoints
+                }.map { pair ->
+                    pair.first?.let { ride ->
+                        when {
+                            ride.endTime == null ->
+                                // TODO: PROPER FORMATTING
+                                RideTrackerContract.State.ActiveRide(
+                                    "${pair.second.lastOrNull()?.speed ?: 0} kmh",
+                                    "${ride.totalDistance} m",
+                                    "${ride.totalElevation} m",
+                                    "${(Clock.System.now() - ride.startTime).inWholeSeconds}",
+                                    pair.second
+                                )
+
+                            else -> RideTrackerContract.State.Default()
+                        }
+                    } ?: RideTrackerContract.State.Default()
+                }.takeWhile { newState -> newState !is RideTrackerContract.State.Default }
+                .onCompletion { _state.emit(RideTrackerContract.State.Default()) }
+                .collectLatest { newState ->
+                    _state.emit(newState)
+                }
+        }
+    }
+
+    private suspend fun updatePermissionState(
+        foregroundPermissionState: PermissionState,
+        backgroundPermissionState: PermissionState,
+        locationServicePermissionState: PermissionState,
+        notificationPermissionState: PermissionState
     ) {
-        val currentState = state.value as? RideTrackerContract.State.Permissions
-
-        var foregroundPermissionState: PermissionState = currentState?.foregroundPermission?.state ?: PermissionState.GRANTED
-        var backgroundPermissionState: PermissionState = currentState?.backgroundPermission?.state ?: PermissionState.GRANTED
-        var locationServicePermissionState: PermissionState =
-            currentState?.locationServicePermission?.state ?: PermissionState.GRANTED
-        var notificationPermissionState: PermissionState =
-            currentState?.locationServicePermission?.state ?: PermissionState.GRANTED
-
-        when (appPermissions) {
-            AppPermissions.LOCATION_SERVICE_ON -> {
-                locationServicePermissionState = permissionState
-            }
-
-            AppPermissions.LOCATION_FOREGROUND -> {
-                foregroundPermissionState = permissionState
-            }
-
-            AppPermissions.LOCATION_BACKGROUND -> {
-                backgroundPermissionState = permissionState
-            }
-
-            AppPermissions.SHOW_NOTIFICATIONS -> notificationPermissionState = permissionState
-        }
-
-        _state.update {
+        _state.emit(
             if (locationServicePermissionState.granted() &&
                 foregroundPermissionState.granted() &&
-                backgroundPermissionState.granted()
+                backgroundPermissionState.granted() &&
+                notificationPermissionState.granted()
             ) {
                 RideTrackerContract.State.Default()
             } else {
@@ -125,14 +155,17 @@ class RideTrackerViewModel(
                         )
                 )
             }
-        }
+        )
     }
 
     private fun requestPermission(permission: AppPermissions) =
         viewModelScope.launch {
             val permissionState = locationPermissionManager.checkPermission(permission)
             when (permissionState) {
-                PermissionState.NOT_DETERMINED -> locationPermissionManager.requestPermission(permission)
+                PermissionState.NOT_DETERMINED ->
+                    locationPermissionManager.requestPermission(
+                        permission
+                    )
                 PermissionState.GRANTED -> {}
                 PermissionState.DENIED -> locationPermissionManager.openSettingPage(permission)
             }
@@ -156,12 +189,15 @@ class RideTrackerViewModel(
 
     private suspend fun startNewRide() {
         val ride = rideTrackerRepository.createNewRide()
+
         ride.rideId?.let { locationService.startLocationService(it) }
+        triggerActiveRideCollection(ride.rideId)
     }
 
     private suspend fun continueExistingRide() {
         val ride = rideTrackerRepository.getActiveRide()
         ride?.rideId?.let { locationService.startLocationService(it) }
+        triggerActiveRideCollection(ride?.rideId)
     }
 }
 
@@ -186,6 +222,14 @@ interface RideTrackerContract :
                     notificationPermissionState
                 )
         }
+
+        data class ActiveRide(
+            val currentSpeed: String,
+            val currentDistance: String,
+            val currentElevationSum: String,
+            val currentDuration: String,
+            val gpsPoints: List<GpsPoint>
+        ) : State()
     }
 
     data class Permission(

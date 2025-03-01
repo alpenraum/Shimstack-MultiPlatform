@@ -19,7 +19,7 @@ class ShimstackLogger(
         ),
     val tag: String? = null
 ) : BaseLogger(config) {
-    private fun generateTag() = tag ?: Exception().stackTraceToString()
+    private fun generateTag() = "___"
 
     @JvmOverloads
     fun v(

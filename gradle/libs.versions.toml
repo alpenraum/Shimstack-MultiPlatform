@@ -16,6 +16,7 @@ junit = "4.13.2"
 kotlin = "2.1.0"
 androidx-splashscreen = "1.0.1"
 kotlinxDatetime = "0.6.1"
+mapsCompose = "6.4.4"
 material-icons-core = "1.7.5"
 
 
@@ -54,6 +55,7 @@ androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", nam
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-splashscreen" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "mapsCompose" }
 material3-window-size = { module = "org.jetbrains.compose.material3:material3-window-size-class", version.ref = "compose-multiplatform" }
 datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }

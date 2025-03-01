@@ -18,11 +18,13 @@ actual class BackgroundLocationRequesterDelegate(
     override fun getPermissionState(): PermissionState =
         when (locationForegroundPermissionDelegate.getPermissionState()) {
             PermissionState.GRANTED ->
-                checkPermissions(context, activity, backgroundLocationPermissions)
+                when (checkPermissions(activity, backgroundLocationPermissions)) {
+                    PermissionState.GRANTED -> PermissionState.GRANTED
+                    else -> PermissionState.NOT_DETERMINED
+                }
 
-            PermissionState.DENIED,
-            PermissionState.NOT_DETERMINED
-            -> PermissionState.NOT_DETERMINED
+            PermissionState.DENIED -> PermissionState.DENIED
+            PermissionState.NOT_DETERMINED -> PermissionState.NOT_DETERMINED
         }
 
     override suspend fun providePermission() {

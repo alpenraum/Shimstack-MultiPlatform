@@ -4,10 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Done
@@ -18,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,17 +29,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.alpenraum.shimstack.base.logger.ShimstackLogger
 import com.alpenraum.shimstack.base.use
+import com.alpenraum.shimstack.ui.base.compose.ClassKeyedCrossfade
 import com.alpenraum.shimstack.ui.base.compose.components.AttachToLifeCycle
+import com.alpenraum.shimstack.ui.base.compose.components.Coordinate
+import com.alpenraum.shimstack.ui.base.compose.components.NativeMap
+import com.alpenraum.shimstack.ui.base.compose.components.Polyline
 import com.alpenraum.shimstack.ui.base.compose.components.ShimstackAlertDialog
 import com.alpenraum.shimstack.ui.base.compose.components.ShimstackCard
+import com.alpenraum.shimstack.ui.base.compose.state.rememberMapState
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import com.alpenraum.shimstack.ui.location.model.getDrawable
 import com.alpenraum.shimstack.ui.location.model.getExplainerResource
 import com.alpenraum.shimstack.ui.location.model.getNameResource
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import shimstackmultiplatform.composeapp.generated.resources.Res
 import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog
@@ -66,7 +74,7 @@ fun RideTrackerScreen(
             showDialog = false
             intents(RideTrackerContract.Intent.OnContinueExistingRide)
         },
-        onDismiss = {
+        onDismissButton = {
             showDialog = false
             intents(RideTrackerContract.Intent.OnStartNewRide)
         }
@@ -80,17 +88,20 @@ fun RideTrackerScreen(
         }
     }
     Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 8.dp).verticalScroll(rememberScrollState())
+        modifier = modifier.fillMaxSize().padding(8.dp)
     ) {
-        when (state) {
-            is RideTrackerContract.State.Default -> {
-                Text(state.x)
-                Button({ intents(RideTrackerContract.Intent.StartTracking) }) {
-                    Text("start tracker")
+        ClassKeyedCrossfade(state) {
+            when (it) {
+                is RideTrackerContract.State.Default -> {
+                    Text(it.x)
+                    Button({ intents(RideTrackerContract.Intent.StartTracking) }) {
+                        Text("start tracker")
+                    }
                 }
-            }
 
-            is RideTrackerContract.State.Permissions -> PermissionsContent(state, intents)
+                is RideTrackerContract.State.Permissions -> PermissionsContent(state, intents)
+                is RideTrackerContract.State.ActiveRide -> ActiveRideContent(state, intents)
+            }
         }
     }
 }
@@ -156,6 +167,27 @@ fun Permission(
                 Text(stringResource(permission.getExplainerResource()))
             }
             Icon(icon, contentDescription = description, modifier = Modifier.padding(end = 8.dp))
+        }
+    }
+}
+
+@Composable
+fun ActiveRideContent(
+    state: RideTrackerContract.State.ActiveRide,
+    intents: (RideTrackerContract.Intent) -> Unit
+) {
+    val logger: ShimstackLogger = koinInject()
+    logger.d("new gps points: ${state.gpsPoints.size}")
+    val mapState = rememberMapState()
+
+    val polyLines by derivedStateOf { state.gpsPoints.map { Coordinate(it.latitude, it.longitude) }.toPersistentList() }
+
+    NativeMap(mapState, modifier = Modifier.fillMaxSize()) {
+        Polyline(polyLines)
+    }
+    LaunchedEffect(state.gpsPoints) {
+        state.gpsPoints.lastOrNull()?.let {
+            mapState.moveToCoordinate(Coordinate(it.latitude, it.longitude))
         }
     }
 }

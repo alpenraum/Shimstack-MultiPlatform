@@ -28,14 +28,13 @@ internal fun Context.openIntent(
 }
 
 internal fun checkPermissions(
-    context: Context,
     activity: Lazy<Activity>,
     permissions: List<String>
 ): PermissionState {
     permissions.ifEmpty { return PermissionState.GRANTED }
     val status: List<Int> =
         permissions.map {
-            context.checkSelfPermission(it)
+            activity.value.checkSelfPermission(it)
         }
     val isAllGranted: Boolean = status.all { it == PackageManager.PERMISSION_GRANTED }
     if (isAllGranted) return PermissionState.GRANTED

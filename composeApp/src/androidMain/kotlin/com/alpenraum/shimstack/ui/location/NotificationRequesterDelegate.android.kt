@@ -17,7 +17,7 @@ actual class NotificationRequesterDelegate(
 ) : LocationRequesterDelegate {
     override fun getPermissionState(): PermissionState =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            checkPermissions(context, activity, listOf(Manifest.permission.POST_NOTIFICATIONS))
+            checkPermissions(activity, listOf(Manifest.permission.POST_NOTIFICATIONS))
         } else {
             PermissionState.GRANTED
         }

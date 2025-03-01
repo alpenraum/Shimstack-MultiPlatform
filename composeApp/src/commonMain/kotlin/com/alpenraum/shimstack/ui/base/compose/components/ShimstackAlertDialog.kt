@@ -18,12 +18,13 @@ fun ShimstackAlertDialog(
     text: StringResource,
     onConfirm: () -> Unit,
     confirmLabel: StringResource = Res.string.label_ok,
-    onDismiss: (() -> Unit)?,
+    onDismissButton: (() -> Unit)?,
+    onDismissDialog: (() -> Unit)? = null,
     dismissLabel: StringResource = Res.string.label_cancel
 ) {
     AnimatedVisibility(showDialog) {
         AlertDialog(
-            onDismissRequest = { onDismiss?.invoke() },
+            onDismissRequest = { onDismissDialog?.invoke() },
             title = title?.let { { Text(stringResource(it)) } },
             text = { Text(stringResource(text)) },
             confirmButton = {
@@ -32,7 +33,7 @@ fun ShimstackAlertDialog(
                 }
             },
             dismissButton =
-                onDismiss?.let {
+                onDismissButton?.let {
                     {
                         Button(onClick = { it() }) {
                             Text(stringResource(dismissLabel))

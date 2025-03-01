@@ -1,5 +1,6 @@
 package com.alpenraum.shimstack.ui.location
 
+import com.alpenraum.shimstack.base.logger.ShimstackLogger
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import kotlinx.coroutines.delay
@@ -13,7 +14,8 @@ class LocationPermissionManager(
     private val foregroundLocationRequesterDelegate: ForegroundLocationRequesterDelegate,
     private val backgroundLocationDelegate: BackgroundLocationRequesterDelegate,
     private val locationServiceDelegate: LocationServiceRequesterDelegate,
-    private val notificationRequesterDelegate: NotificationRequesterDelegate
+    private val notificationRequesterDelegate: NotificationRequesterDelegate,
+    private val logger: ShimstackLogger
 ) {
     fun checkPermission(permission: AppPermissions): PermissionState {
         return try {

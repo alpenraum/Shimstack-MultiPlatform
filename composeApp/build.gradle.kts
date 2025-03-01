@@ -38,6 +38,7 @@ kotlin {
             implementation(libs.androidx.core.splashscreen)
             implementation(libs.androidx.material)
             implementation(libs.play.services.location)
+            implementation(libs.maps.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)

@@ -2,6 +2,7 @@ package com.alpenraum.shimstack.domain.ridetracker
 
 import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
 import com.alpenraum.shimstack.domain.model.ridetracker.Ride
+import kotlinx.coroutines.flow.Flow
 
 interface RideTrackerRepository {
     suspend fun createNewRide(): Ride
@@ -12,9 +13,15 @@ interface RideTrackerRepository {
 
     suspend fun getRide(rideId: Long): Ride?
 
+    fun getRideFlow(rideId: Long): Flow<Ride?>
+
     suspend fun insertGpsPoints(list: List<GpsPoint>)
 
     suspend fun getGpsPointsForRide(rideId: Long): List<GpsPoint>
 
+    fun getGpsPointsForRideFlow(rideId: Long): Flow<List<GpsPoint>>
+
     suspend fun getActiveRide(): Ride?
+
+    suspend fun getGpsById(id: Long): List<GpsPoint>
 }

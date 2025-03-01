@@ -66,7 +66,7 @@ class RideTrackerCache(
         }
     }
 
-    private suspend fun saveGpsData() {
+    internal suspend fun saveGpsData() {
         logger.d("Saving GpsData to db!", tag = RideTrackerCache::class.simpleName.toString())
         try {
             rideTrackerRepository.insertGpsPoints(gpsPoints)

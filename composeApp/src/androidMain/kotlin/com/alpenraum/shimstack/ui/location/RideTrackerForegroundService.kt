@@ -162,7 +162,9 @@ class RideTrackerForegroundService :
             super.onDestroy()
         }
         scope.launch {
-            rideTrackerCache.finishRide()
+            if (this@RideTrackerForegroundService::rideTrackerCache.isInitialized) {
+                rideTrackerCache.finishRide()
+            }
             onDbFinished()
         }
     }
@@ -256,6 +258,7 @@ class RideTrackerForegroundService :
                 .setCustomContentView(remoteView) // TODO: ADD SPECIFIC VIEW FOR COLLAPSED
                 .setCustomBigContentView(remoteView)
                 .setOngoing(true)
+                .setOnlyAlertOnce(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .addAction(R.drawable.ic_launcher_foreground, getString(R.string.stop), stopPendingIntent)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
