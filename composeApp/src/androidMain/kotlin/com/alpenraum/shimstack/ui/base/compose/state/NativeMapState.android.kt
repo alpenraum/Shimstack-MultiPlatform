@@ -17,12 +17,14 @@ internal class GoogleMapState : NativeMapState {
 
     override var zoomLevel: Float by mutableFloatStateOf(MapConstants.DEFAULT_ZOOM)
 
+    private var isFirstMove = true
+
     override suspend fun moveToCoordinate(coordinate: Coordinate) {
         cameraPositionState?.let {
             val newCameraPosition =
                 CameraPosition(
                     coordinate.toLatLong(),
-                    it.position.zoom,
+                    if (isFirstMove) zoomLevel else it.position.zoom,
                     it.position.tilt,
                     it.position.bearing
                 )

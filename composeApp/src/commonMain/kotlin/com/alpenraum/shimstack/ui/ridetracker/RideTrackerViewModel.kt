@@ -7,6 +7,7 @@ import com.alpenraum.shimstack.base.UnidirectionalViewModel
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
 import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
 import com.alpenraum.shimstack.domain.ridetracker.RideTrackerRepository
+import com.alpenraum.shimstack.domain.ridetracker.RideTrackerService
 import com.alpenraum.shimstack.ui.location.LocationPermissionManager
 import com.alpenraum.shimstack.ui.location.LocationService
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
@@ -35,6 +36,7 @@ class RideTrackerViewModel(
     private val locationPermissionManager: LocationPermissionManager,
     private val rideTrackerRepository: RideTrackerRepository,
     private val shimstackLogger: ShimstackLogger,
+    private val rideTrackerService: RideTrackerService,
     dispatchersProvider: DispatchersProvider
 ) : BaseViewModel(dispatchersProvider),
     RideTrackerContract {
@@ -57,37 +59,63 @@ class RideTrackerViewModel(
         }
     }
 
-    private var permissionJob: Job? = null
+    private var backgroundWorkJob: Job? = null
 
     override fun onStart() {
-        permissionJob =
+        backgroundWorkJob =
             iOScope.launch {
-                combine(
-                    locationPermissionManager
-                        .checkPermissionFlow(AppPermissions.LOCATION_FOREGROUND),
-                    locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_BACKGROUND),
-                    locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_SERVICE_ON),
-                    locationPermissionManager.checkPermissionFlow(AppPermissions.SHOW_NOTIFICATIONS)
-                ) { foreground, background, location, notification ->
-                    listOf(foreground, background, location, notification)
-                }.collectLatest {
-                    updatePermissionState(it[0], it[1], it[2], it[3])
+                if (locationService.isLocationServiceActive()) {
+                    triggerActiveRideCollectionFromCache()
+                } else {
+                    combine(
+                        locationPermissionManager
+                            .checkPermissionFlow(AppPermissions.LOCATION_FOREGROUND),
+                        locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_BACKGROUND),
+                        locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_SERVICE_ON),
+                        locationPermissionManager.checkPermissionFlow(AppPermissions.SHOW_NOTIFICATIONS)
+                    ) { foreground, background, location, notification ->
+                        listOf(foreground, background, location, notification)
+                    }.collectLatest {
+                        updatePermissionState(it[0], it[1], it[2], it[3])
+                    }
                 }
             }
-
-        iOScope.launch {
-            if (locationService.isLocationServiceActive()) {
-                triggerActiveRideCollection()
-            }
-        }
     }
 
     override fun onStop() {
         super.onStop()
-        permissionJob?.cancel()
+        backgroundWorkJob?.cancel()
     }
 
-    private suspend fun triggerActiveRideCollection(activeRideId: Long? = null) {
+    private suspend fun triggerActiveRideCollectionFromCache() {
+        rideTrackerService
+            .getRideDataFlow()
+            .map {
+                when {
+                    it.ride.endTime == null ->
+                        // TODO: PROPER FORMATTING
+                        RideTrackerContract.State.ActiveRide(
+                            "${it.gpsPoints.lastOrNull()?.speed ?: 0} kmh",
+                            "${it.totalDistance} m",
+                            "${it.totalElevation} m",
+                            "${(Clock.System.now() - it.ride.startTime).inWholeSeconds}",
+                            it.gpsPoints
+                        )
+
+                    else -> RideTrackerContract.State.Default()
+                }
+            }.takeWhile { newState -> newState !is RideTrackerContract.State.Default }
+            .onCompletion {
+                shimstackLogger.d("on completion called!")
+                _state.emit(RideTrackerContract.State.Default())
+            }.collectLatest { newState ->
+                shimstackLogger.d("emitting new state: $newState")
+                _state.emit(newState)
+            }
+    }
+
+    @Deprecated("triggerActiveRideCollectionFromCache works better")
+    private suspend fun triggerActiveRideCollectionFromDb(activeRideId: Long? = null) {
         (activeRideId ?: rideTrackerRepository.getActiveRide()?.rideId)?.let {
             shimstackLogger.d("starting ride UI for id: $it")
             rideTrackerRepository
@@ -190,14 +218,21 @@ class RideTrackerViewModel(
     private suspend fun startNewRide() {
         val ride = rideTrackerRepository.createNewRide()
 
-        ride.rideId?.let { locationService.startLocationService(it) }
-        triggerActiveRideCollection(ride.rideId)
+        ride.rideId?.let {
+            rideTrackerService.ride = ride
+            locationService.startLocationService(it)
+        }
+        triggerActiveRideCollectionFromCache()
     }
 
     private suspend fun continueExistingRide() {
         val ride = rideTrackerRepository.getActiveRide()
-        ride?.rideId?.let { locationService.startLocationService(it) }
-        triggerActiveRideCollection(ride?.rideId)
+
+        ride?.let {
+            rideTrackerService.ride = it
+            locationService.startLocationService(it.rideId!!)
+            triggerActiveRideCollectionFromCache()
+        }
     }
 }
 

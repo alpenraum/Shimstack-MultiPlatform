@@ -87,10 +87,13 @@ fun RideTrackerScreen(
             }
         }
     }
-    Column(
-        modifier = modifier.fillMaxSize().padding(8.dp)
-    ) {
-        ClassKeyedCrossfade(state) {
+
+    ClassKeyedCrossfade(state) {
+        Column(
+            modifier = modifier.fillMaxSize().padding(8.dp)
+        ) {
+            val logger: ShimstackLogger = koinInject()
+            logger.d("got new State: $state")
             when (it) {
                 is RideTrackerContract.State.Default -> {
                     Text(it.x)
@@ -99,8 +102,8 @@ fun RideTrackerScreen(
                     }
                 }
 
-                is RideTrackerContract.State.Permissions -> PermissionsContent(state, intents)
-                is RideTrackerContract.State.ActiveRide -> ActiveRideContent(state, intents)
+                is RideTrackerContract.State.Permissions -> PermissionsContent(it, intents)
+                is RideTrackerContract.State.ActiveRide -> ActiveRideContent(it, intents)
             }
         }
     }

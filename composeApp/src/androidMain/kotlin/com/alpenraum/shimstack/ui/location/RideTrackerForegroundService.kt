@@ -23,8 +23,7 @@ import com.alpenraum.shimstack.MainActivity
 import com.alpenraum.shimstack.R
 import com.alpenraum.shimstack.ShimstackApplication
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
-import com.alpenraum.shimstack.domain.ridetracker.RideTrackerCache
-import com.alpenraum.shimstack.domain.ridetracker.RideTrackerRepository
+import com.alpenraum.shimstack.domain.ridetracker.RideTrackerService
 import com.alpenraum.shimstack.ui.base.navigation.DeeplinkManager
 import com.alpenraum.shimstack.ui.base.navigation.NavigationTarget
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
@@ -52,7 +51,7 @@ class RideTrackerForegroundService :
     Service(),
     KoinComponent {
     private val logger: ShimstackLogger by inject()
-    private val rideTrackerRepository: RideTrackerRepository by inject()
+    private val rideTrackerService: RideTrackerService by inject()
 
     companion object {
         private const val TAG = "LocationForegroundService"
@@ -81,8 +80,6 @@ class RideTrackerForegroundService :
     private var fusedClient: FusedLocationProviderClient? = null
     private var locationUpdateListener: LocationCallback? = null
 
-    private lateinit var rideTrackerCache: RideTrackerCache
-
     override fun onCreate() {
         super.onCreate()
         remoteView =
@@ -101,14 +98,9 @@ class RideTrackerForegroundService :
             return START_NOT_STICKY
         }
         scope.launch {
-            val ride =
-                if (intent?.hasExtra(EXTRA_RIDE_ID) == true) {
-                    rideTrackerRepository.getRide(intent.getLongExtra(EXTRA_RIDE_ID, -1)) ?: rideTrackerRepository.createNewRide()
-                } else {
-                    rideTrackerRepository.createNewRide()
-                }
-            rideTrackerCache = RideTrackerCache(ride)
-
+            if (rideTrackerService.ride?.rideId == null) {
+                throw IllegalStateException("RideTrackerCache has no valid Ride! ${rideTrackerService.ride}")
+            }
             if (!isActive) {
                 createNotificationChannel()
 
@@ -130,7 +122,7 @@ class RideTrackerForegroundService :
                         gpsAcquired = true
                         showTimer()
 
-                        rideTrackerCache.addNewGpsPoint(it)
+                        rideTrackerService.addNewGpsPoint(it)
                     }
                 }
                 scope.launch {
@@ -140,8 +132,8 @@ class RideTrackerForegroundService :
                             val start = Clock.System.now().toEpochMilliseconds()
                             seconds++
                             updateTimer(seconds)
-                            updateDistance(rideTrackerCache.totalDistance)
-                            updateElevation(rideTrackerCache.totalElevation)
+                            updateDistance(rideTrackerService.getTotalDistance())
+                            updateElevation(rideTrackerService.getTotalElevation())
 
                             delay(1000L - (Clock.System.now().toEpochMilliseconds() - start))
                         }
@@ -162,9 +154,7 @@ class RideTrackerForegroundService :
             super.onDestroy()
         }
         scope.launch {
-            if (this@RideTrackerForegroundService::rideTrackerCache.isInitialized) {
-                rideTrackerCache.finishRide()
-            }
+            rideTrackerService.finishRide()
             onDbFinished()
         }
     }

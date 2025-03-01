@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,7 +17,6 @@ import com.alpenraum.shimstack.R
 import com.alpenraum.shimstack.ui.base.compose.state.MapConstants
 import com.alpenraum.shimstack.ui.base.compose.state.NativeMapState
 import com.alpenraum.shimstack.ui.base.compose.state.setMapController
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.CameraPositionState
@@ -80,9 +78,6 @@ actual fun NativeMap(
         cameraPositionState = cameraPositionState
     ) {
         content()
-    }
-    LaunchedEffect(Unit) {
-        cameraPositionState.move(CameraUpdateFactory.zoomTo(MapConstants.DEFAULT_ZOOM))
     }
 }
 

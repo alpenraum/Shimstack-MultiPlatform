@@ -1,5 +1,6 @@
 package com.alpenraum.shimstack.domain.model.ridetracker
 
+import com.alpenraum.shimstack.ui.location.model.LocationResult
 import kotlinx.datetime.Instant
 
 data class GpsPoint(
@@ -11,4 +12,22 @@ data class GpsPoint(
     val altitude: Double,
     val accuracy: Float,
     val timestamp: Instant
-)
+) {
+    companion object {
+        fun fromLocationResult(
+            locationResult: LocationResult,
+            rideId: Long
+        ) = with(locationResult) {
+            return@with GpsPoint(
+                null,
+                rideId,
+                locationResult.latitude,
+                locationResult.longitude,
+                locationResult.speed,
+                locationResult.altitude,
+                locationResult.accuracy,
+                Instant.fromEpochMilliseconds(locationResult.timestampUnixMs)
+            )
+        }
+    }
+}
