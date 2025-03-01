@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -33,12 +35,15 @@ import com.alpenraum.shimstack.base.logger.ShimstackLogger
 import com.alpenraum.shimstack.base.use
 import com.alpenraum.shimstack.ui.base.compose.ClassKeyedCrossfade
 import com.alpenraum.shimstack.ui.base.compose.components.AttachToLifeCycle
+import com.alpenraum.shimstack.ui.base.compose.components.ButtonText
 import com.alpenraum.shimstack.ui.base.compose.components.Coordinate
+import com.alpenraum.shimstack.ui.base.compose.components.LargeButton
 import com.alpenraum.shimstack.ui.base.compose.components.NativeMap
 import com.alpenraum.shimstack.ui.base.compose.components.Polyline
 import com.alpenraum.shimstack.ui.base.compose.components.ShimstackAlertDialog
 import com.alpenraum.shimstack.ui.base.compose.components.ShimstackCard
 import com.alpenraum.shimstack.ui.base.compose.state.rememberMapState
+import com.alpenraum.shimstack.ui.bikeDetails.TextPair
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import com.alpenraum.shimstack.ui.location.model.getDrawable
@@ -50,9 +55,14 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import shimstackmultiplatform.composeapp.generated.resources.Res
+import shimstackmultiplatform.composeapp.generated.resources.distance_label
+import shimstackmultiplatform.composeapp.generated.resources.duration_label
+import shimstackmultiplatform.composeapp.generated.resources.elevation_label
 import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog
 import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog_accept
 import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog_decline
+import shimstackmultiplatform.composeapp.generated.resources.speed_label
+import shimstackmultiplatform.composeapp.generated.resources.stop_ride_label
 
 @Composable
 fun RideTrackerScreen(
@@ -92,6 +102,7 @@ fun RideTrackerScreen(
         Column(
             modifier = modifier.fillMaxSize().padding(8.dp)
         ) {
+            // TODO : SCREEN
             val logger: ShimstackLogger = koinInject()
             logger.d("got new State: $state")
             when (it) {
@@ -120,7 +131,7 @@ fun PermissionsContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Looks like you didn't grant all permissions.",
+            "Looks like you didn't grant all permissions.", // TODO LABELS
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
@@ -149,7 +160,7 @@ fun Permission(
             PermissionState.GRANTED -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
             PermissionState.DENIED -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
         }
-    val (icon, description) =
+    val (icon, description) = // TODO LABELS
         when (permissionState) {
             PermissionState.NOT_DETERMINED -> Icons.Default.QuestionMark to "Not set"
             PermissionState.GRANTED -> Icons.Default.Done to "Granted"
@@ -179,18 +190,44 @@ fun ActiveRideContent(
     state: RideTrackerContract.State.ActiveRide,
     intents: (RideTrackerContract.Intent) -> Unit
 ) {
-    val logger: ShimstackLogger = koinInject()
-    logger.d("new gps points: ${state.gpsPoints.size}")
     val mapState = rememberMapState()
 
     val polyLines by derivedStateOf { state.gpsPoints.map { Coordinate(it.latitude, it.longitude) }.toPersistentList() }
 
-    NativeMap(mapState, modifier = Modifier.fillMaxSize()) {
-        Polyline(polyLines)
-    }
-    LaunchedEffect(state.gpsPoints) {
-        state.gpsPoints.lastOrNull()?.let {
-            mapState.moveToCoordinate(Coordinate(it.latitude, it.longitude))
+    Column(Modifier.padding(8.dp)) {
+        ShimstackCard(Modifier.fillMaxHeight(0.66f).fillMaxWidth().padding(bottom = 16.dp)) {
+            NativeMap(mapState, modifier = Modifier.fillMaxSize()) {
+                Polyline(polyLines)
+            }
+        }
+
+        ShimstackCard(modifier = Modifier.weight(1.0f).fillMaxWidth()) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Medium)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                    TextPair(Res.string.elevation_label, state.currentElevationSum, textStyle = style)
+                    TextPair(Res.string.distance_label, state.currentDistance, textStyle = style)
+                }
+                Spacer(Modifier.weight(1.0f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                    TextPair(Res.string.speed_label, state.currentSpeed, textStyle = style)
+                    TextPair(Res.string.duration_label, state.currentDuration, textStyle = style)
+                }
+                Spacer(Modifier.weight(1.0f))
+                LargeButton({ intents(RideTrackerContract.Intent.OnStopRideClick) }) {
+                    ButtonText(Res.string.stop_ride_label)
+                }
+            }
+        }
+
+        LaunchedEffect(state.gpsPoints) {
+            state.gpsPoints.lastOrNull()?.let {
+                mapState.moveToCoordinate(Coordinate(it.latitude, it.longitude))
+            }
         }
     }
 }

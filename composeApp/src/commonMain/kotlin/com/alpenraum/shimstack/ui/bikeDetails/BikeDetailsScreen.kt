@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -518,13 +519,14 @@ private fun RearSuspensionBlock(
 }
 
 @Composable
-private fun TextPair(
+fun TextPair(
     label: StringResource,
     text: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle =MaterialTheme.typography.bodyLarge
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text)
+        Text(text, style = textStyle)
         InfoText(textRes = label)
     }
 }

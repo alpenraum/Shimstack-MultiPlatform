@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import com.alpenraum.shimstack.ui.base.compose.theme.AppTheme
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
+import com.alpenraum.shimstack.ui.ridetracker.ActiveRideContent
 import com.alpenraum.shimstack.ui.ridetracker.PermissionsContent
 import com.alpenraum.shimstack.ui.ridetracker.RideTrackerContract
+import kotlinx.collections.immutable.persistentListOf
 
 @ShimstackPreviews
 @Composable
@@ -28,8 +30,24 @@ private fun PermissionPreview() =
                 RideTrackerContract.Permission(
                     PermissionState.GRANTED,
                     AppPermissions.SHOW_NOTIFICATIONS
-                ),
+                )
             )
 
         PermissionsContent(state) { }
+    }
+
+@ShimstackPreviews
+@Composable
+private fun ActiveRidePreview() =
+    AppTheme {
+        val state =
+            RideTrackerContract.State.ActiveRide(
+                "55.0 kph",
+                "23.4 km",
+                "523m",
+                "00:34:23",
+                persistentListOf()
+            )
+
+        ActiveRideContent(state) { }
     }

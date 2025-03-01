@@ -12,7 +12,9 @@ import com.alpenraum.shimstack.ui.location.LocationPermissionManager
 import com.alpenraum.shimstack.ui.location.LocationService
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,6 +58,7 @@ class RideTrackerViewModel(
             is RideTrackerContract.Intent.RequestPermission -> requestPermission(intent.permission)
             RideTrackerContract.Intent.OnContinueExistingRide -> viewModelScope.launch { continueExistingRide() }
             RideTrackerContract.Intent.OnStartNewRide -> viewModelScope.launch { startNewRide() }
+            RideTrackerContract.Intent.OnStopRideClick -> finishRide()
         }
     }
 
@@ -87,6 +90,11 @@ class RideTrackerViewModel(
         backgroundWorkJob?.cancel()
     }
 
+    private fun finishRide() =
+        iOScope.launch {
+            rideTrackerService.finishRide()
+        }
+
     private suspend fun triggerActiveRideCollectionFromCache() {
         rideTrackerService
             .getRideDataFlow()
@@ -99,7 +107,7 @@ class RideTrackerViewModel(
                             "${it.totalDistance} m",
                             "${it.totalElevation} m",
                             "${(Clock.System.now() - it.ride.startTime).inWholeSeconds}",
-                            it.gpsPoints
+                            it.gpsPoints.toImmutableList()
                         )
 
                     else -> RideTrackerContract.State.Default()
@@ -132,7 +140,7 @@ class RideTrackerViewModel(
                                     "${ride.totalDistance} m",
                                     "${ride.totalElevation} m",
                                     "${(Clock.System.now() - ride.startTime).inWholeSeconds}",
-                                    pair.second
+                                    pair.second.toImmutableList()
                                 )
 
                             else -> RideTrackerContract.State.Default()
@@ -263,7 +271,7 @@ interface RideTrackerContract :
             val currentDistance: String,
             val currentElevationSum: String,
             val currentDuration: String,
-            val gpsPoints: List<GpsPoint>
+            val gpsPoints: ImmutableList<GpsPoint>
         ) : State()
     }
 
@@ -286,5 +294,7 @@ interface RideTrackerContract :
         object OnContinueExistingRide : Intent
 
         object OnStartNewRide : Intent
+
+        object OnStopRideClick : Intent
     }
 }

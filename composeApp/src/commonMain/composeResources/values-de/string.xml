@@ -172,4 +172,11 @@
     <string name="ride_tracker_last_ride_dialog">Es schaut so aus, als wäre dein letzter Ride nie fertiggestellt geworden. Magst du ihn fortsetzen oder einen neuen starten?</string>
     <string name="ride_tracker_last_ride_dialog_accept">Ride fortsetzen</string>
     <string name="ride_tracker_last_ride_dialog_decline">Neuen Ride starten</string>
+
+    <string name="distance_label">Entfernung</string>
+    <string name="elevation_label">Höhenmeter</string>
+    <string name="speed_label">Geschwindigkeit</string>
+    <string name="duration_label">Dauer</string>
+    <string name="stop_ride_label">Ride stoppen</string>
+
 </resources>
