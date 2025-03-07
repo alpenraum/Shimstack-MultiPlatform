@@ -8,5 +8,6 @@ data class Ride(
     val endTime: Instant?,
     val totalDistance: Float = 0f,
     val totalElevation: Float = 0f,
-    val averageSpeed: Float = 0f
+    val averageSpeed: Float = 0f,
+    val topSpeed: Float = 0f
 )

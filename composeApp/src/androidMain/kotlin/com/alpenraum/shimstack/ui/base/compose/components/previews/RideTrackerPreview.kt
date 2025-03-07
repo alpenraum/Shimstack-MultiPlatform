@@ -5,8 +5,10 @@ import com.alpenraum.shimstack.ui.base.compose.theme.AppTheme
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import com.alpenraum.shimstack.ui.ridetracker.ActiveRideContent
+import com.alpenraum.shimstack.ui.ridetracker.DefaultContent
 import com.alpenraum.shimstack.ui.ridetracker.PermissionsContent
 import com.alpenraum.shimstack.ui.ridetracker.RideTrackerContract
+import com.alpenraum.shimstack.ui.ridetracker.RideView
 import kotlinx.collections.immutable.persistentListOf
 
 @ShimstackPreviews
@@ -51,3 +53,16 @@ private fun ActiveRidePreview() =
 
         ActiveRideContent(state) { }
     }
+
+@ShimstackPreviews
+@Composable
+private fun DefaultPreview() =
+    AppTheme {
+        val rideview = RideView("24.06.2026 13:55", "00:54:23", "24.3 km", "652 m", "54.2 km/h", "100 km/h")
+        val state =
+            RideTrackerContract.State.Default(
+                persistentListOf(rideview,rideview,rideview)
+            )
+
+    DefaultContent (state) { }
+}

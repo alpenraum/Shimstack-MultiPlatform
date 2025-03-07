@@ -19,6 +19,9 @@ interface RideDao {
     @Query("SELECT * FROM rides WHERE rideId =:rideId")
     suspend fun getRide(rideId: Long): RideDto?
 
+    @Query("SELECT * FROM rides ORDER BY endTime DESC")
+    suspend fun getAllRides(): List<RideDto>
+
     @Query("SELECT * FROM rides WHERE rideId =:rideId")
     fun getRideFlow(rideId: Long): Flow<RideDto?>
 

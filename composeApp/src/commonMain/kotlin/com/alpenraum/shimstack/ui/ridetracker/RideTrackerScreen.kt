@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.QuestionMark
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,9 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.alpenraum.shimstack.base.logger.ShimstackLogger
 import com.alpenraum.shimstack.base.use
 import com.alpenraum.shimstack.ui.base.compose.ClassKeyedCrossfade
 import com.alpenraum.shimstack.ui.base.compose.components.AttachToLifeCycle
@@ -52,9 +54,9 @@ import com.alpenraum.shimstack.ui.location.model.getNameResource
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import shimstackmultiplatform.composeapp.generated.resources.Res
+import shimstackmultiplatform.composeapp.generated.resources.average_speed_label
 import shimstackmultiplatform.composeapp.generated.resources.distance_label
 import shimstackmultiplatform.composeapp.generated.resources.duration_label
 import shimstackmultiplatform.composeapp.generated.resources.elevation_label
@@ -62,7 +64,10 @@ import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_r
 import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog_accept
 import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_ride_dialog_decline
 import shimstackmultiplatform.composeapp.generated.resources.speed_label
+import shimstackmultiplatform.composeapp.generated.resources.start_ride_label
 import shimstackmultiplatform.composeapp.generated.resources.stop_ride_label
+import shimstackmultiplatform.composeapp.generated.resources.tire
+import shimstackmultiplatform.composeapp.generated.resources.top_speed_label
 
 @Composable
 fun RideTrackerScreen(
@@ -102,20 +107,69 @@ fun RideTrackerScreen(
         Column(
             modifier = modifier.fillMaxSize().padding(8.dp)
         ) {
-            // TODO : SCREEN
-            val logger: ShimstackLogger = koinInject()
-            logger.d("got new State: $state")
             when (it) {
-                is RideTrackerContract.State.Default -> {
-                    Text(it.x)
-                    Button({ intents(RideTrackerContract.Intent.StartTracking) }) {
-                        Text("start tracker")
-                    }
-                }
+                is RideTrackerContract.State.Default -> DefaultContent(it, intents)
 
                 is RideTrackerContract.State.Permissions -> PermissionsContent(it, intents)
                 is RideTrackerContract.State.ActiveRide -> ActiveRideContent(it, intents)
             }
+        }
+    }
+}
+
+@Composable
+fun DefaultContent(
+    state: RideTrackerContract.State.Default,
+    intents: (RideTrackerContract.Intent) -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(state.rides) {
+                RideViewCard(it, Modifier.fillMaxWidth())
+            }
+        }
+        Spacer(Modifier.weight(1.0f))
+
+        LargeButton({ intents(RideTrackerContract.Intent.OnStartNewRide) }, modifier = Modifier.padding(vertical = 16.dp)) {
+            ButtonText(Res.string.start_ride_label)
+        }
+    }
+}
+
+@Composable
+private fun RideViewCard(
+    rideView: RideView,
+    modifier: Modifier = Modifier
+) {
+    ShimstackCard(modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(8.dp)) {
+            Text(rideView.date, style = MaterialTheme.typography.titleLarge, textDecoration = TextDecoration.Underline)
+            Row {
+                Text(stringResource(Res.string.distance_label))
+                Spacer(Modifier.width(8.dp))
+                Text(rideView.distance)
+            }
+            Row {
+                Text(stringResource(Res.string.elevation_label))
+                Spacer(Modifier.width(8.dp))
+                Text(rideView.elevationSum)
+            }
+            Row {
+                Text(stringResource(Res.string.duration_label))
+                Spacer(Modifier.width(8.dp))
+                Text(rideView.duration)
+            }
+            Row {
+                Text(stringResource(Res.string.average_speed_label))
+                Spacer(Modifier.width(8.dp))
+                Text(rideView.averageSpeed)
+            }
+            Row {
+                Text(stringResource(Res.string.top_speed_label))
+                Spacer(Modifier.width(8.dp))
+                Text(rideView.topSpeed)
+            }
+
         }
     }
 }

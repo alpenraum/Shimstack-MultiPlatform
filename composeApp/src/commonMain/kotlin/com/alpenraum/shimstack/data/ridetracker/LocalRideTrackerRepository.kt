@@ -45,6 +45,8 @@ class LocalRideTrackerRepository(
     override fun getRideFlow(rideId: Long): Flow<Ride?> =
         rideDao.getRideFlow(rideId).map { it?.toDomain() }.distinctUntilChanged()
 
+    override suspend fun getAllRides(): List<Ride> = rideDao.getAllRides().map { it.toDomain() }
+
     override suspend fun insertGpsPoints(list: List<GpsPoint>) {
         gpsPointDao.insertAll(list.map { GpsPointDto.fromDomain(it) })
     }

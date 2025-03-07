@@ -27,6 +27,7 @@ class RideTrackerService(
             val gpsPoints = rideTrackerCache.getGpsPoints()
 
             var finalDistance = 0f
+            var topSpeed = 0f
             for (i in 1 until gpsPoints.size) {
                 val prevLatitude = gpsPoints[i - 1].latitude
                 val prevLongitude = gpsPoints[i - 1].longitude
@@ -34,6 +35,12 @@ class RideTrackerService(
                 val currLongitude = gpsPoints[i].longitude
 
                 finalDistance += calculateDistance(prevLatitude, prevLongitude, currLatitude, currLongitude)
+                topSpeed =
+                    if (gpsPoints[i].speed > topSpeed) {
+                        gpsPoints[i].speed
+                    } else {
+                        topSpeed
+                    }
             }
 
             val endTime = Clock.System.now()
@@ -45,7 +52,8 @@ class RideTrackerService(
                     .copy(
                         endTime = endTime,
                         averageSpeed = averageSpeed,
-                        totalDistance = finalDistance
+                        totalDistance = finalDistance,
+                        topSpeed = topSpeed
                     ).also { newRide ->
                         ride = newRide
                     }

@@ -5,9 +5,18 @@ import com.alpenraum.shimstack.base.BaseViewModel
 import com.alpenraum.shimstack.base.DispatchersProvider
 import com.alpenraum.shimstack.base.UnidirectionalViewModel
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.data.formatted
+import com.alpenraum.shimstack.data.kmToMiles
+import com.alpenraum.shimstack.data.kphToMph
+import com.alpenraum.shimstack.data.mToFeet
+import com.alpenraum.shimstack.data.toDate
+import com.alpenraum.shimstack.domain.model.measurementunit.MeasurementUnitType
 import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
 import com.alpenraum.shimstack.domain.ridetracker.RideTrackerRepository
 import com.alpenraum.shimstack.domain.ridetracker.RideTrackerService
+import com.alpenraum.shimstack.domain.userSettings.GetUserSettingsUseCase
+import com.alpenraum.shimstack.ui.bikeDetails.getLargeDistanceStringRes
+import com.alpenraum.shimstack.ui.bikeDetails.getMediumDistanceStringRes
 import com.alpenraum.shimstack.ui.location.LocationPermissionManager
 import com.alpenraum.shimstack.ui.location.LocationService
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
@@ -29,6 +38,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import org.jetbrains.compose.resources.getString
 import org.koin.android.annotation.KoinViewModel
 
 // TODO: VISUALISE RIDE DATA IF ACTIVE
@@ -39,11 +49,25 @@ class RideTrackerViewModel(
     private val rideTrackerRepository: RideTrackerRepository,
     private val shimstackLogger: ShimstackLogger,
     private val rideTrackerService: RideTrackerService,
+    private val userSettingsUseCase: GetUserSettingsUseCase,
     dispatchersProvider: DispatchersProvider
 ) : BaseViewModel(dispatchersProvider),
     RideTrackerContract {
+    private var measurementUnitType: MeasurementUnitType = MeasurementUnitType.METRIC
+
+    init {
+        iOScope.launch {
+            userSettingsUseCase().collectLatest {
+                measurementUnitType = it.measurementUnitType
+                if (state.value is RideTrackerContract.State.Default) {
+                    emitDefaultState()
+                }
+            }
+        }
+    }
+
     private val _event = MutableSharedFlow<RideTrackerContract.Event>()
-    private val _state = MutableStateFlow<RideTrackerContract.State>(RideTrackerContract.State.Default())
+    private val _state = MutableStateFlow<RideTrackerContract.State>(RideTrackerContract.State.Default(persistentListOf()))
     override val state: StateFlow<RideTrackerContract.State> = _state.asStateFlow()
 
     override val event: SharedFlow<RideTrackerContract.Event>
@@ -101,21 +125,20 @@ class RideTrackerViewModel(
             .map {
                 when {
                     it.ride.endTime == null ->
-                        // TODO: PROPER FORMATTING
                         RideTrackerContract.State.ActiveRide(
-                            "${it.gpsPoints.lastOrNull()?.speed ?: 0} kmh",
-                            "${it.totalDistance} m",
-                            "${it.totalElevation} m",
-                            "${(Clock.System.now() - it.ride.startTime).inWholeSeconds}",
+                            formatSpeed(it.gpsPoints.lastOrNull()?.speed ?: 0f),
+                            formatDistance(it.totalDistance),
+                            formatElevation(it.totalElevation),
+                            (Clock.System.now() - it.ride.startTime).formatted(),
                             it.gpsPoints.toImmutableList()
                         )
 
-                    else -> RideTrackerContract.State.Default()
+                    else -> getDefaultState()
                 }
             }.takeWhile { newState -> newState !is RideTrackerContract.State.Default }
             .onCompletion {
                 shimstackLogger.d("on completion called!")
-                _state.emit(RideTrackerContract.State.Default())
+                _state.emit(getDefaultState())
             }.collectLatest { newState ->
                 shimstackLogger.d("emitting new state: $newState")
                 _state.emit(newState)
@@ -134,20 +157,20 @@ class RideTrackerViewModel(
                     pair.first?.let { ride ->
                         when {
                             ride.endTime == null ->
-                                // TODO: PROPER FORMATTING
+
                                 RideTrackerContract.State.ActiveRide(
-                                    "${pair.second.lastOrNull()?.speed ?: 0} kmh",
-                                    "${ride.totalDistance} m",
-                                    "${ride.totalElevation} m",
-                                    "${(Clock.System.now() - ride.startTime).inWholeSeconds}",
+                                    formatSpeed(pair.second.lastOrNull()?.speed ?: 0f),
+                                    formatDistance(ride.totalDistance),
+                                    formatElevation(ride.totalElevation),
+                                    (Clock.System.now() - ride.startTime).formatted(),
                                     pair.second.toImmutableList()
                                 )
 
-                            else -> RideTrackerContract.State.Default()
+                            else -> getDefaultState()
                         }
-                    } ?: RideTrackerContract.State.Default()
+                    } ?: getDefaultState()
                 }.takeWhile { newState -> newState !is RideTrackerContract.State.Default }
-                .onCompletion { _state.emit(RideTrackerContract.State.Default()) }
+                .onCompletion { emitDefaultState() }
                 .collectLatest { newState ->
                     _state.emit(newState)
                 }
@@ -166,7 +189,7 @@ class RideTrackerViewModel(
                 backgroundPermissionState.granted() &&
                 notificationPermissionState.granted()
             ) {
-                RideTrackerContract.State.Default()
+                getDefaultState()
             } else {
                 RideTrackerContract.State.Permissions(
                     locationServicePermission =
@@ -223,6 +246,26 @@ class RideTrackerViewModel(
             }
         }
 
+    private suspend fun getDefaultState() =
+        RideTrackerContract.State.Default(
+            rideTrackerRepository
+                .getAllRides()
+                .map {
+                    val date = it.startTime.toDate()
+                    val duration = it.endTime?.let { it1 -> (it1 - it.startTime).formatted() } ?: "-"
+                    val distance = formatDistance(it.totalDistance)
+                    val elevationSum = formatElevation(it.totalElevation)
+                    val averageSpeed = formatSpeed(it.averageSpeed)
+                    val topSpeed = formatSpeed(it.topSpeed)
+                    RideView(date, duration, distance, elevationSum, averageSpeed, topSpeed)
+                }.toImmutableList()
+        )
+
+    private suspend fun emitDefaultState() {
+        val rides = getDefaultState()
+        _state.emit(rides)
+    }
+
     private suspend fun startNewRide() {
         val ride = rideTrackerRepository.createNewRide()
 
@@ -242,13 +285,28 @@ class RideTrackerViewModel(
             triggerActiveRideCollectionFromCache()
         }
     }
+
+    private suspend fun formatDistance(distance: Float): String {
+        val amount = if (measurementUnitType.isMetric()) distance else distance.kmToMiles()
+        return "$amount ${getString(measurementUnitType.getLargeDistanceStringRes())}"
+    }
+
+    private suspend fun formatElevation(elevation: Float): String {
+        val amount = if (measurementUnitType.isMetric()) elevation else elevation.mToFeet()
+        return "$amount ${getString(measurementUnitType.getMediumDistanceStringRes())}"
+    }
+
+    private suspend fun formatSpeed(speed: Float): String {
+        val amount = if (measurementUnitType.isMetric()) speed else speed.kphToMph()
+        return "$amount ${getString(measurementUnitType.getMediumDistanceStringRes())}"
+    }
 }
 
 interface RideTrackerContract :
     UnidirectionalViewModel<RideTrackerContract.State, RideTrackerContract.Intent, RideTrackerContract.Event> {
     sealed class State {
         data class Default(
-            val x: String = "lol"
+            val rides: ImmutableList<RideView>
         ) : State()
 
         data class Permissions(

@@ -13,10 +13,19 @@ data class RideDto(
     val endTime: String?, // Null if ongoing
     val totalDistance: Float = 0f, // Meters
     val totalElevation: Float = 0f,
-    val averageSpeed: Float = 0f
+    val averageSpeed: Float = 0f,
+    val topSpeed: Float = 0f
 ) {
     fun toDomain() =
-        Ride(rideId, Instant.parse(startTime), endTime?.let { Instant.parse(it) }, totalDistance, totalElevation, averageSpeed)
+        Ride(
+            rideId,
+            Instant.parse(startTime),
+            endTime?.let { Instant.parse(it) },
+            totalDistance,
+            totalElevation,
+            averageSpeed,
+            topSpeed
+        )
 
     companion object {
         fun fromDomain(ride: Ride) =
@@ -26,7 +35,8 @@ data class RideDto(
                 ride.endTime?.toString(),
                 ride.totalDistance,
                 ride.totalElevation,
-                ride.averageSpeed
+                ride.averageSpeed,
+                ride.topSpeed
             )
     }
 }

@@ -48,6 +48,10 @@
     <string name="psi" translatable="false">PSI</string>
     <string name="mm" translatable="false">mm</string>
     <string name="inch" translatable="false">"</string>
+    <string name="km" translatable="false">km</string>
+    <string name="miles" translatable="false">mi</string>
+    <string name="meter" translatable="false">m</string>
+    <string name="feet" translatable="false">ft</string>
     <string name="clicks">Clicks</string>
     <string name="percent">%</string>
 
@@ -186,9 +190,13 @@
     <string name="ride_tracker_last_ride_dialog_decline">Start new ride</string>
 
     <string name="distance_label">Distance</string>
-    <string name="elevation_label">Elevation meters</string>
+    <string name="elevation_label">Elevation</string>
     <string name="speed_label">Speed</string>
     <string name="duration_label">Duration</string>
     <string name="stop_ride_label">Stop Ride</string>
+    <string name="start_ride_label">Start Ride</string>
+    <string name="top_speed_label">Top speed</string>
+    <string name="average_speed_label">Average speed</string>
+
 
 </resources>

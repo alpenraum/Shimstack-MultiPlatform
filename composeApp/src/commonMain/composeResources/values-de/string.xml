@@ -178,5 +178,8 @@
     <string name="speed_label">Geschwindigkeit</string>
     <string name="duration_label">Dauer</string>
     <string name="stop_ride_label">Ride stoppen</string>
+    <string name="start_ride_label">Ride starten</string>
+    <string name="top_speed_label">Höchstgeschwindigkeit</string>
+    <string name="average_speed_label">Durchschnittliche Geschwindigkeit</string>
 
 </resources>

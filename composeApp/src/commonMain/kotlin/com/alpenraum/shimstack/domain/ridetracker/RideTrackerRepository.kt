@@ -15,6 +15,8 @@ interface RideTrackerRepository {
 
     fun getRideFlow(rideId: Long): Flow<Ride?>
 
+    suspend fun getAllRides(): List<Ride>
+
     suspend fun insertGpsPoints(list: List<GpsPoint>)
 
     suspend fun getGpsPointsForRide(rideId: Long): List<GpsPoint>

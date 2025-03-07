@@ -395,7 +395,7 @@ private fun TireBlock(
                                     stringResource(
                                         Res.string.label_tire_width
                                     ),
-                                suffix = measurementUnitType.getDistanceLabel(),
+                                suffix = measurementUnitType.getSmallDistanceLabel(),
                                 modifier = Modifier.weight(1.0f),
                                 keyboardOptions = KeyboardOptions.number(ImeAction.Next),
                                 isError = showError
@@ -523,7 +523,7 @@ fun TextPair(
     label: StringResource,
     text: String,
     modifier: Modifier = Modifier,
-    textStyle: TextStyle =MaterialTheme.typography.bodyLarge
+    textStyle: TextStyle = MaterialTheme.typography.bodyLarge
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text, style = textStyle)
@@ -569,7 +569,7 @@ private fun SuspensionBlock(
                             stringResource(
                                 Res.string.label_travel
                             ),
-                        suffix = measurementUnitType.getDistanceLabel(),
+                        suffix = measurementUnitType.getSmallDistanceLabel(),
                         modifier = Modifier.weight(1.0f),
                         keyboardOptions = KeyboardOptions.number(ImeAction.Next),
                         isError = showError
