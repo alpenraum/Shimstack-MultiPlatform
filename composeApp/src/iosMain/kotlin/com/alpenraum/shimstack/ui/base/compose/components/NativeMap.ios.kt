@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitInteropInteractionMode
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
+import com.alpenraum.shimstack.ui.base.compose.state.MapConstants
 import com.alpenraum.shimstack.ui.base.compose.state.NativeMapState
 import com.alpenraum.shimstack.ui.base.compose.state.onMapUpdated
 import com.alpenraum.shimstack.ui.base.compose.state.setMap
@@ -27,6 +28,7 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.sizeOf
 import kotlinx.collections.immutable.ImmutableList
 import platform.CoreLocation.CLLocationCoordinate2D
+import platform.MapKit.MKMapCameraZoomRange
 import platform.MapKit.MKMapView
 import platform.MapKit.MKMapViewDelegateProtocol
 import platform.MapKit.MKOverlayProtocol
@@ -101,10 +103,19 @@ private fun AppleMap(
                 setScrollEnabled(true)
                 setRotateEnabled(true)
                 setPitchEnabled(true)
+                setShowsUserLocation(true)
+                setShowsTraffic(false)
+                setShowsBuildings(false)
+                setShowsPointsOfInterest(false)
 
                 setShowsCompass(false)
 
                 // customize map view further
+                cameraZoomRange =
+                    MKMapCameraZoomRange(
+                        MapConstants.MIN_ZOOM_LEVEL.toDouble() * 100,
+                        MapConstants.MAX_ZOOM_LEVEL.toDouble() * 1000
+                    )
             }
         },
         update = { mapView ->

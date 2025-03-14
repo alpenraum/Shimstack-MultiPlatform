@@ -10,12 +10,9 @@ import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 
 fun openNSUrl(string: String) {
+    println("opening setting page for $string")
     val settingsUrl: NSURL = NSURL.URLWithString(string)!!
-    if (UIApplication.sharedApplication.canOpenURL(settingsUrl)) {
-        UIApplication.sharedApplication.openURL(settingsUrl)
-    } else {
-        throw IllegalArgumentException(string)
-    }
+    UIApplication.sharedApplication.openURL(settingsUrl, emptyMap<Any?, Any>()) {}
 }
 
 fun openAppSettingsPage() {

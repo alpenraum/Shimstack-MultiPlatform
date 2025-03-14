@@ -52,6 +52,8 @@
     <string name="miles" translatable="false">mi</string>
     <string name="meter" translatable="false">m</string>
     <string name="feet" translatable="false">ft</string>
+    <string name="kph" >kph</string>
+    <string name="mph" translatable="false" >mph</string>
     <string name="clicks">Clicks</string>
     <string name="percent">%</string>
 

@@ -61,7 +61,7 @@ private fun DefaultPreview() =
         val rideview = RideView("24.06.2026 13:55", "00:54:23", "24.3 km", "652 m", "54.2 km/h", "100 km/h")
         val state =
             RideTrackerContract.State.Default(
-                persistentListOf(rideview,rideview,rideview)
+                persistentListOf(rideview,rideview,rideview,rideview)
             )
 
     DefaultContent (state) { }

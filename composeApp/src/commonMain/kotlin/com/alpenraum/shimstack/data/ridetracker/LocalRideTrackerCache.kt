@@ -63,20 +63,20 @@ class LocalRideTrackerCache(
         }
     }
 
-    override suspend fun finishRide(ride: Ride) =
-        ride.let {
-            logger.d("Finishing ride!", tag = LocalRideTrackerCache::class.simpleName.toString())
-            gpsPointsFlow.emit(gpsPoints)
-            try {
-                saveGpsData(ride)
-            } catch (e: Exception) {
-                logger.e(
-                    "Something went wrong while finishing ride!",
-                    e,
-                    tag = LocalRideTrackerCache::class.simpleName.toString()
-                )
-            }
-        }
+//    override suspend fun finishRide(ride: Ride) =
+//        ride.let {
+//            logger.d("Finishing ride!", tag = LocalRideTrackerCache::class.simpleName.toString())
+//            gpsPointsFlow.emit(gpsPoints)
+//            try {
+//                saveGpsData(ride)
+//            } catch (e: Exception) {
+//                logger.e(
+//                    "Something went wrong while finishing ride!",
+//                    e,
+//                    tag = LocalRideTrackerCache::class.simpleName.toString()
+//                )
+//            }
+//        }
 
     override suspend fun getLastGpsPoint(): GpsPoint? = gpsPoints.lastOrNull()
 

@@ -17,6 +17,16 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.addAll(
+                        "-P",
+                        "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=cl.emilym.kmp.parcelable.Parcelize"
+                    )
+                }
+            }
+        }
     }
 
     listOf(
@@ -72,6 +82,7 @@ kotlin {
             implementation(libs.datastore.preferences)
             implementation(libs.datastore)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.parcelable)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -13,8 +13,8 @@ import com.alpenraum.shimstack.ui.location.model.PermissionState
 actual class ForegroundLocationRequesterDelegate(
     private val context: Context,
     private val activity: Lazy<Activity>
-) : LocationRequesterDelegate {
-    override fun getPermissionState(): PermissionState = checkPermissions(activity, fineLocationPermissions)
+) : PermissionRequesterDelegate {
+    override suspend fun getPermissionState(): PermissionState = checkPermissions(activity, fineLocationPermissions)
 
     override suspend fun providePermission() {
         activity.value.providePermissions(fineLocationPermissions) {

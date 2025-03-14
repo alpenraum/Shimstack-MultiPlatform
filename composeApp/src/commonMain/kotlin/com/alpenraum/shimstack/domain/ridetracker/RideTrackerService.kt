@@ -36,8 +36,8 @@ class RideTrackerService(
 
                 finalDistance += calculateDistance(prevLatitude, prevLongitude, currLatitude, currLongitude)
                 topSpeed =
-                    if (gpsPoints[i].speed > topSpeed) {
-                        gpsPoints[i].speed
+                    if (gpsPoints[i].speedInKph > topSpeed) {
+                        gpsPoints[i].speedInKph
                     } else {
                         topSpeed
                     }
@@ -58,7 +58,7 @@ class RideTrackerService(
                         ride = newRide
                     }
             )
-            rideTrackerCache.finishRide(it)
+//            rideTrackerCache.finishRide(it)
         }
     }
 

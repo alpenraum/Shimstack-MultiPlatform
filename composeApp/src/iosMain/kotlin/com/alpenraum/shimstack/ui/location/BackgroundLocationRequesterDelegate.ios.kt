@@ -7,9 +7,9 @@ import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusDenied
 
 actual class BackgroundLocationRequesterDelegate(
-    private val locationForegroundPermissionDelegate: LocationRequesterDelegate
-) : LocationRequesterDelegate {
-    override fun getPermissionState(): PermissionState {
+    private val locationForegroundPermissionDelegate: PermissionRequesterDelegate
+) : PermissionRequesterDelegate {
+    override suspend fun getPermissionState(): PermissionState {
         val foregroundPermissionStatus =
             locationForegroundPermissionDelegate.getPermissionState()
         return when (foregroundPermissionStatus) {

@@ -3,7 +3,7 @@ package com.alpenraum.shimstack.ui.location.model
 data class LocationResult(
     val latitude: Double,
     val longitude: Double,
-    val speed: Float,
+    val speedInMs: Float,
     val altitude: Double,
     val accuracy: Float,
     val timestampUnixMs: Long

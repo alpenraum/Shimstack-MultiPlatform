@@ -123,12 +123,11 @@ fun DefaultContent(
     intents: (RideTrackerContract.Intent) -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1.0f)) {
             items(state.rides) {
                 RideViewCard(it, Modifier.fillMaxWidth())
             }
         }
-        Spacer(Modifier.weight(1.0f))
 
         LargeButton({ intents(RideTrackerContract.Intent.OnStartNewRide) }, modifier = Modifier.padding(vertical = 16.dp)) {
             ButtonText(Res.string.start_ride_label)

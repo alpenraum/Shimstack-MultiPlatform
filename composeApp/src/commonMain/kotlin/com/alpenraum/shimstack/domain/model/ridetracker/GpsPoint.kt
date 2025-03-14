@@ -8,7 +8,7 @@ data class GpsPoint(
     val rideId: Long,
     val latitude: Double,
     val longitude: Double,
-    val speed: Float,
+    val speedInKph: Float,
     val altitude: Double,
     val accuracy: Float,
     val timestamp: Instant
@@ -23,7 +23,7 @@ data class GpsPoint(
                 rideId,
                 locationResult.latitude,
                 locationResult.longitude,
-                locationResult.speed,
+                locationResult.speedInMs / 3.6f,
                 locationResult.altitude,
                 locationResult.accuracy,
                 Instant.fromEpochMilliseconds(locationResult.timestampUnixMs)

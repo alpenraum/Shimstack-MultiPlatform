@@ -37,7 +37,7 @@ fun ShimstackNavHost(
     LaunchedEffect(Unit) {
         viewModel.deeplinkManager.navigationAction.collectLatest {
             if (it == null) return@collectLatest
-            navController.navigate(MainRoute.BottomNav(subTarget = it))
+            navController.navigate(MainRoute.BottomNav(subTarget = it.name))
         }
     }
 }

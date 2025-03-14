@@ -4,12 +4,8 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
-import com.alpenraum.shimstack.base.di.ShimstackGeneratedModule
-import com.alpenraum.shimstack.base.di.databaseModule
-import com.alpenraum.shimstack.base.di.navigationModule
-import com.alpenraum.shimstack.base.di.platformModule
+import com.alpenraum.shimstack.base.di.koinModules
 import org.koin.core.context.startKoin
-import org.koin.ksp.generated.module
 
 class ShimstackApplication : Application() {
     companion object {
@@ -65,10 +61,7 @@ class ShimstackApplication : Application() {
 
         startKoin {
             modules(
-                navigationModule(),
-                ShimstackGeneratedModule().module,
-                databaseModule(),
-                platformModule()
+                koinModules()
             )
         }
     }

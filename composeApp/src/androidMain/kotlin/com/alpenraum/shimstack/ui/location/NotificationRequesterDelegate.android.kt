@@ -14,8 +14,8 @@ import com.alpenraum.shimstack.ui.location.model.PermissionState
 actual class NotificationRequesterDelegate(
     private val context: Context,
     private val activity: Lazy<Activity>
-) : LocationRequesterDelegate {
-    override fun getPermissionState(): PermissionState =
+) : PermissionRequesterDelegate {
+    override suspend fun getPermissionState(): PermissionState =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             checkPermissions(activity, listOf(Manifest.permission.POST_NOTIFICATIONS))
         } else {

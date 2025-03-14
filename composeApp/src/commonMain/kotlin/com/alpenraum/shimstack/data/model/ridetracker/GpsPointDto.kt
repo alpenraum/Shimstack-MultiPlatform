@@ -40,7 +40,7 @@ data class GpsPointDto(
                 gpsPoint.latitude,
                 gpsPoint.longitude,
                 gpsPoint.altitude,
-                gpsPoint.speed,
+                gpsPoint.speedInKph,
                 gpsPoint.accuracy,
                 gpsPoint.timestamp.toString()
             )

@@ -14,8 +14,8 @@ actual class BackgroundLocationRequesterDelegate(
     private val context: Context,
     private val activity: Lazy<Activity>,
     private val locationForegroundPermissionDelegate: ForegroundLocationRequesterDelegate
-) : LocationRequesterDelegate {
-    override fun getPermissionState(): PermissionState =
+) : PermissionRequesterDelegate {
+    override suspend fun getPermissionState(): PermissionState =
         when (locationForegroundPermissionDelegate.getPermissionState()) {
             PermissionState.GRANTED ->
                 when (checkPermissions(activity, backgroundLocationPermissions)) {

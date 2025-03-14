@@ -20,11 +20,13 @@ import shimstackmultiplatform.composeapp.generated.resources.hsc
 import shimstackmultiplatform.composeapp.generated.resources.hsr
 import shimstackmultiplatform.composeapp.generated.resources.inch
 import shimstackmultiplatform.composeapp.generated.resources.km
+import shimstackmultiplatform.composeapp.generated.resources.kph
 import shimstackmultiplatform.composeapp.generated.resources.lsc
 import shimstackmultiplatform.composeapp.generated.resources.lsr
 import shimstackmultiplatform.composeapp.generated.resources.meter
 import shimstackmultiplatform.composeapp.generated.resources.miles
 import shimstackmultiplatform.composeapp.generated.resources.mm
+import shimstackmultiplatform.composeapp.generated.resources.mph
 import shimstackmultiplatform.composeapp.generated.resources.pressure
 import shimstackmultiplatform.composeapp.generated.resources.psi
 import shimstackmultiplatform.composeapp.generated.resources.rear
@@ -120,6 +122,11 @@ fun MeasurementUnitType.getMediumDistanceStringRes() = if (this.isMetric()) Res.
 
 @Composable
 fun MeasurementUnitType.getMediumDistanceLabel(): String = stringResource(getMediumDistanceStringRes())
+
+fun MeasurementUnitType.getSpeedStringRes() = if (this.isMetric()) Res.string.kph else Res.string.mph
+
+@Composable
+fun MeasurementUnitType.getSpeedLabel(): String = stringResource(getSpeedStringRes())
 
 // region Tire
 @Composable

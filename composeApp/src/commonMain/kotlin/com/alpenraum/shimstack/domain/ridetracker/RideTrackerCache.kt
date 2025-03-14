@@ -10,7 +10,7 @@ interface RideTrackerCache {
         ride: Ride
     )
 
-    suspend fun finishRide(ride: Ride)
+//    suspend fun finishRide(ride: Ride)
 
     suspend fun getLastGpsPoint(): GpsPoint?
 

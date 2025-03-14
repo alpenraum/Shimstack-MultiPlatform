@@ -9,6 +9,7 @@ import com.alpenraum.shimstack.data.formatted
 import com.alpenraum.shimstack.data.kmToMiles
 import com.alpenraum.shimstack.data.kphToMph
 import com.alpenraum.shimstack.data.mToFeet
+import com.alpenraum.shimstack.data.roundToUiFormat
 import com.alpenraum.shimstack.data.toDate
 import com.alpenraum.shimstack.domain.model.measurementunit.MeasurementUnitType
 import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
@@ -17,6 +18,7 @@ import com.alpenraum.shimstack.domain.ridetracker.RideTrackerService
 import com.alpenraum.shimstack.domain.userSettings.GetUserSettingsUseCase
 import com.alpenraum.shimstack.ui.bikeDetails.getLargeDistanceStringRes
 import com.alpenraum.shimstack.ui.bikeDetails.getMediumDistanceStringRes
+import com.alpenraum.shimstack.ui.bikeDetails.getSpeedStringRes
 import com.alpenraum.shimstack.ui.location.LocationPermissionManager
 import com.alpenraum.shimstack.ui.location.LocationService
 import com.alpenraum.shimstack.ui.location.model.AppPermissions
@@ -59,9 +61,6 @@ class RideTrackerViewModel(
         iOScope.launch {
             userSettingsUseCase().collectLatest {
                 measurementUnitType = it.measurementUnitType
-                if (state.value is RideTrackerContract.State.Default) {
-                    emitDefaultState()
-                }
             }
         }
     }
@@ -91,6 +90,7 @@ class RideTrackerViewModel(
     override fun onStart() {
         backgroundWorkJob =
             iOScope.launch {
+                shimstackLogger.d("starting permission job")
                 if (locationService.isLocationServiceActive()) {
                     triggerActiveRideCollectionFromCache()
                 } else {
@@ -101,6 +101,7 @@ class RideTrackerViewModel(
                         locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_SERVICE_ON),
                         locationPermissionManager.checkPermissionFlow(AppPermissions.SHOW_NOTIFICATIONS)
                     ) { foreground, background, location, notification ->
+                        shimstackLogger.d("getting update from locationPermissionManager!")
                         listOf(foreground, background, location, notification)
                     }.collectLatest {
                         updatePermissionState(it[0], it[1], it[2], it[3])
@@ -117,6 +118,8 @@ class RideTrackerViewModel(
     private fun finishRide() =
         iOScope.launch {
             rideTrackerService.finishRide()
+            locationService.stopLocationService()
+            emitDefaultState()
         }
 
     private suspend fun triggerActiveRideCollectionFromCache() {
@@ -126,7 +129,7 @@ class RideTrackerViewModel(
                 when {
                     it.ride.endTime == null ->
                         RideTrackerContract.State.ActiveRide(
-                            formatSpeed(it.gpsPoints.lastOrNull()?.speed ?: 0f),
+                            formatSpeed(it.gpsPoints.lastOrNull()?.speedInKph ?: 0f),
                             formatDistance(it.totalDistance),
                             formatElevation(it.totalElevation),
                             (Clock.System.now() - it.ride.startTime).formatted(),
@@ -159,7 +162,7 @@ class RideTrackerViewModel(
                             ride.endTime == null ->
 
                                 RideTrackerContract.State.ActiveRide(
-                                    formatSpeed(pair.second.lastOrNull()?.speed ?: 0f),
+                                    formatSpeed(pair.second.lastOrNull()?.speedInKph ?: 0f),
                                     formatDistance(ride.totalDistance),
                                     formatElevation(ride.totalElevation),
                                     (Clock.System.now() - ride.startTime).formatted(),
@@ -287,18 +290,18 @@ class RideTrackerViewModel(
     }
 
     private suspend fun formatDistance(distance: Float): String {
-        val amount = if (measurementUnitType.isMetric()) distance else distance.kmToMiles()
+        val amount = (if (measurementUnitType.isMetric()) distance else distance.kmToMiles()).roundToUiFormat()
         return "$amount ${getString(measurementUnitType.getLargeDistanceStringRes())}"
     }
 
     private suspend fun formatElevation(elevation: Float): String {
-        val amount = if (measurementUnitType.isMetric()) elevation else elevation.mToFeet()
+        val amount = (if (measurementUnitType.isMetric()) elevation else elevation.mToFeet()).roundToUiFormat()
         return "$amount ${getString(measurementUnitType.getMediumDistanceStringRes())}"
     }
 
     private suspend fun formatSpeed(speed: Float): String {
-        val amount = if (measurementUnitType.isMetric()) speed else speed.kphToMph()
-        return "$amount ${getString(measurementUnitType.getMediumDistanceStringRes())}"
+        val amount = (if (measurementUnitType.isMetric()) speed else speed.kphToMph()).roundToUiFormat()
+        return "$amount ${getString(measurementUnitType.getSpeedStringRes())}"
     }
 }
 

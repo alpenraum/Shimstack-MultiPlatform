@@ -9,18 +9,20 @@ import platform.CoreLocation.kCLAuthorizationStatusDenied
 import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
 import platform.CoreLocation.kCLAuthorizationStatusRestricted
 
-actual class ForegroundLocationRequesterDelegate : LocationRequesterDelegate {
+actual class ForegroundLocationRequesterDelegate : PermissionRequesterDelegate {
     private var locationManager = CLLocationManager()
 
-    override fun getPermissionState(): PermissionState =
-        when (locationManager.authorizationStatus()) {
-            kCLAuthorizationStatusAuthorizedAlways,
-            kCLAuthorizationStatusAuthorizedWhenInUse,
-            kCLAuthorizationStatusRestricted -> PermissionState.GRANTED
+    override suspend fun getPermissionState(): PermissionState =
+        locationManager.authorizationStatus().let {
+            when (it) {
+                kCLAuthorizationStatusAuthorizedAlways,
+                kCLAuthorizationStatusAuthorizedWhenInUse,
+                kCLAuthorizationStatusRestricted -> PermissionState.GRANTED
 
-            kCLAuthorizationStatusNotDetermined -> PermissionState.NOT_DETERMINED
-            kCLAuthorizationStatusDenied -> PermissionState.DENIED
-            else -> PermissionState.NOT_DETERMINED
+                kCLAuthorizationStatusNotDetermined -> PermissionState.NOT_DETERMINED
+                kCLAuthorizationStatusDenied -> PermissionState.DENIED
+                else -> PermissionState.NOT_DETERMINED
+            }
         }
 
     override suspend fun providePermission() {

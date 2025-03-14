@@ -17,7 +17,7 @@ class LocationPermissionManager(
     private val notificationRequesterDelegate: NotificationRequesterDelegate,
     private val logger: ShimstackLogger
 ) {
-    fun checkPermission(permission: AppPermissions): PermissionState {
+    suspend fun checkPermission(permission: AppPermissions): PermissionState {
         return try {
             return getPermissionDelegate(permission).getPermissionState()
         } catch (e: Exception) {
@@ -46,7 +46,6 @@ class LocationPermissionManager(
     }
 
     fun openSettingPage(permission: AppPermissions) {
-        println("Open settings for permission $permission")
         try {
             getPermissionDelegate(permission).openSettingPage()
         } catch (e: Exception) {
@@ -55,7 +54,7 @@ class LocationPermissionManager(
         }
     }
 
-    private fun getPermissionDelegate(permission: AppPermissions): LocationRequesterDelegate =
+    private fun getPermissionDelegate(permission: AppPermissions): PermissionRequesterDelegate =
         when (permission) {
             AppPermissions.LOCATION_SERVICE_ON -> locationServiceDelegate
             AppPermissions.LOCATION_FOREGROUND -> foregroundLocationRequesterDelegate

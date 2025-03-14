@@ -1,15 +1,12 @@
 package com.alpenraum.shimstack.ui.location
 
-import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
-import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.text.format.DateUtils
@@ -18,29 +15,16 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.bundle.bundleOf
-import androidx.core.content.ContextCompat
 import com.alpenraum.shimstack.MainActivity
 import com.alpenraum.shimstack.R
-import com.alpenraum.shimstack.ShimstackApplication
-import com.alpenraum.shimstack.base.logger.ShimstackLogger
 import com.alpenraum.shimstack.domain.ridetracker.RideTrackerService
 import com.alpenraum.shimstack.ui.base.navigation.DeeplinkManager
 import com.alpenraum.shimstack.ui.base.navigation.NavigationTarget
-import com.alpenraum.shimstack.ui.location.model.AppPermissions
-import com.alpenraum.shimstack.ui.location.model.LocationResult
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import org.koin.core.component.KoinComponent
@@ -50,14 +34,14 @@ import kotlin.math.roundToInt
 class RideTrackerForegroundService :
     Service(),
     KoinComponent {
-    private val logger: ShimstackLogger by inject()
     private val rideTrackerService: RideTrackerService by inject()
 
+    private var locationManager: LocationManager? = null
+
     companion object {
-        private const val TAG = "LocationForegroundService"
         private const val CHANNEL_ID = "1"
         private const val NOTIFICATION_ID = 100
-        private const val LOCATION_UPDATE_INTERVAL = 1000L
+
         const val EXTRA_RIDE_ID = "RIDE_ID"
 
         private var isActive: Boolean = false
@@ -76,9 +60,6 @@ class RideTrackerForegroundService :
     private val notificationManager by lazy {
         getSystemService(NotificationManager::class.java)
     }
-
-    private var fusedClient: FusedLocationProviderClient? = null
-    private var locationUpdateListener: LocationCallback? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -99,7 +80,7 @@ class RideTrackerForegroundService :
         }
         scope.launch {
             if (rideTrackerService.ride?.rideId == null) {
-                throw IllegalStateException("RideTrackerCache has no valid Ride! ${rideTrackerService.ride}")
+                throw IllegalStateException("RideTrackerService has no valid Ride! ${rideTrackerService.ride}")
             }
             if (!isActive) {
                 createNotificationChannel()
@@ -116,9 +97,10 @@ class RideTrackerForegroundService :
                             0
                         }
                     )
+                locationManager = LocationManager()
                 var gpsAcquired = false
                 scope.launch {
-                    getLocationUpdates().collect {
+                    locationManager?.getLocationUpdates(this@RideTrackerForegroundService)?.collect {
                         gpsAcquired = true
                         showTimer()
 
@@ -147,7 +129,7 @@ class RideTrackerForegroundService :
     }
 
     override fun onDestroy() {
-        locationUpdateListener?.let { fusedClient?.removeLocationUpdates(it) }
+        locationManager?.onStop()
         val onDbFinished = {
             scope.cancel()
             isActive = false
@@ -172,47 +154,6 @@ class RideTrackerForegroundService :
             notificationManager.createNotificationChannel(serviceChannel)
         }
     }
-
-    private fun getLocationUpdates(): Flow<LocationResult> {
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            throw PermissionNotGrantedException(AppPermissions.LOCATION_FOREGROUND)
-        }
-        return callbackFlow {
-            locationUpdateListener =
-                object : LocationCallback() {
-                    override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
-                        logger.d("received " + locationResult.locations.size + " locations", tag = TAG)
-                        for (loc in locationResult.locations) {
-                            trySend(LocationResult.fromLocation(loc))
-                        }
-                    }
-                }
-
-            fusedClient = LocationServices.getFusedLocationProviderClient(ShimstackApplication.activity)
-
-            fusedClient?.lastLocation?.addOnSuccessListener { location ->
-                if (location != null) {
-                    trySend(LocationResult.fromLocation(location))
-                }
-            }
-
-            fusedClient?.requestLocationUpdates(createLocationRequest(), locationUpdateListener!!, mainLooper)
-
-            awaitClose {
-                locationUpdateListener?.let { fusedClient?.removeLocationUpdates(it) }
-            }
-        }
-    }
-
-    private fun createLocationRequest() =
-        LocationRequest
-            .Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
-            .build()
 
     private fun getNotification(): Notification {
         val stopIntent =
@@ -285,13 +226,3 @@ class RideTrackerForegroundService :
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 }
-
-private fun LocationResult.Companion.fromLocation(location: Location) =
-    LocationResult(
-        latitude = location.latitude,
-        longitude = location.longitude,
-        speed = location.speed,
-        altitude = location.altitude,
-        accuracy = location.accuracy,
-        timestampUnixMs = location.time
-    )

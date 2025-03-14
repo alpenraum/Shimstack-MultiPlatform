@@ -27,9 +27,10 @@ kotlinxSerialization = "1.9.0"
 kotlinxCollectionsImmutable = "0.3.8"
 kermit = "2.0.5"
 
+parcelable = "0.1.2"
 playServicesLocation = "21.3.0"
 sqlite = "2.5.0-SNAPSHOT"
-androidx-room = "2.7.0-beta01"
+androidx-room = "2.7.0-rc02"
 datastore = "1.1.2"
 
 # Annotations procesing
@@ -70,6 +71,7 @@ koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "
 koin-annotations-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koinAnnotations" }
 
 #kermit
+parcelable = { module = "cl.emilym.kmp:parcelable", version.ref = "parcelable" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 touchlab-kermit = { module = "co.touchlab:kermit-core", version.ref = "kermit" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }

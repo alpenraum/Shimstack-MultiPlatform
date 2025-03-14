@@ -23,6 +23,7 @@ enum class NavigationTarget {
     RIDE_TRACKER;
 
     companion object {
-        fun valueOfIgnoreCase(value: String): NavigationTarget? = entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+        fun valueOfIgnoreCase(value: String?): NavigationTarget? =
+            entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
     }
 }

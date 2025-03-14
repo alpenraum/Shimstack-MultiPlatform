@@ -40,6 +40,7 @@
     <string name="metric">Metrisch</string>
     <string name="imperial">Imperial</string>
     <string name="clicks">Klicks</string>
+    <string name="kph" >kmh</string>
 
     <string name="fab_add_bike">Neues Fahrrad hinzufügen</string>
     <string name="copy_add_new_bike">Füge dein erstes Fahrrrad hinzu!</string>

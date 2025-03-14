@@ -10,12 +10,12 @@ import com.alpenraum.shimstack.ui.location.model.PermissionState
 actual class LocationServiceRequesterDelegate(
     private val context: Context,
     private val logger: ShimstackLogger
-) : LocationRequesterDelegate {
+) : PermissionRequesterDelegate {
     private val locationManager: LocationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as
             LocationManager
 
-    override fun getPermissionState(): PermissionState {
+    override suspend fun getPermissionState(): PermissionState {
         val granted =
             locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)

@@ -4,10 +4,10 @@ import com.alpenraum.shimstack.base.openNSUrl
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 import platform.CoreLocation.CLLocationManager
 
-actual class LocationServiceRequesterDelegate : LocationRequesterDelegate {
+actual class LocationServiceRequesterDelegate : PermissionRequesterDelegate {
     private val locationManager = CLLocationManager()
 
-    override fun getPermissionState(): PermissionState =
+    override suspend fun getPermissionState(): PermissionState =
         if (locationManager.locationServicesEnabled()) {
             PermissionState.GRANTED
         } else {

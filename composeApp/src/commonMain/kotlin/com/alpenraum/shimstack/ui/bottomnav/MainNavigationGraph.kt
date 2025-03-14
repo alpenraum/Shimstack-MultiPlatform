@@ -38,7 +38,7 @@ class MainNavigationGraph : NavGraphDefinition<MainRoute> {
                     )
             ) {
                 val subTarget = it.toRoute<MainRoute.BottomNav>().subTarget
-                BottomNavFeature(navController, subTarget)
+                BottomNavFeature(navController, NavigationTarget.valueOfIgnoreCase(subTarget))
             }
 
             composable<MainRoute.BikeDetails> {
@@ -55,7 +55,7 @@ sealed class MainRoute : NavDestinationDefinition {
 
     @Serializable
     data class BottomNav(
-        val subTarget: NavigationTarget? = null
+        val subTarget: String? = null
     ) : MainRoute()
 
     @Serializable
