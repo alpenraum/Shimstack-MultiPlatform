@@ -98,6 +98,8 @@ fun CardWithPlaceholder(
 fun ShimstackCard(
     modifier: Modifier = Modifier,
     shape: Shape = shimstackRoundedCornerShape(),
+    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
     content:
         @Composable ColumnScope.(PaddingValues) -> Unit
 ) {
@@ -106,8 +108,8 @@ fun ShimstackCard(
         modifier,
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                containerColor = containerColor,
+                contentColor = contentColor
             ),
         content = {
             content(PaddingValues(12.dp))

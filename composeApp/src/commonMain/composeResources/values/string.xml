@@ -48,6 +48,12 @@
     <string name="psi" translatable="false">PSI</string>
     <string name="mm" translatable="false">mm</string>
     <string name="inch" translatable="false">"</string>
+    <string name="km" translatable="false">km</string>
+    <string name="miles" translatable="false">mi</string>
+    <string name="meter" translatable="false">m</string>
+    <string name="feet" translatable="false">ft</string>
+    <string name="kph" >kph</string>
+    <string name="mph" translatable="false" >mph</string>
     <string name="clicks">Clicks</string>
     <string name="percent">%</string>
 
@@ -61,6 +67,8 @@
     <string name="label_yes">Yes</string>
     <string name="label_no">No</string>
     <string name="label_done">Done</string>
+    <string name="label_ok" translatable="false">Ok</string>
+    <string name="label_cancel">Cancel</string>
     <string name="label_edit">Edit</string>
     <string name="label_delete">Delete</string>
     <string name="label_save">Save</string>
@@ -166,5 +174,31 @@
 
     <string name="symptom_too_much_comp_title">Bike is uncomfortable</string>
     <string name="symptom_too_much_comp_description">Your sag is good, but the bike feels hard and it's difficult to get deeper into the travel.</string>
+
+
+    <string name="permission_foreground_name">GPS tracking</string>
+    <string name="permission_foreground_explainer">So that Shimstack can track your ride.</string>
+    <string name="permission_background_name">GPS in the background</string>
+    <string name="permission_background_explainer">So your ride is tracked even if the app is in the background.</string>
+    <string name="permission_location_name">Location service</string>
+    <string name="permission_location_explainer">Location services need to be turned on.</string>
+    <string name="permission_notification_name">Notifications</string>
+    <string name="permission_notification_explainer">While your ride is being recorded, you will see the current status in a notification.</string>
+
+
+    <string name="ride_tracking_name">Ride tracker</string>
+    <string name="ride_tracker_last_ride_dialog">It seems like your last ride was never finished. Do you want to continue it or start a new one?</string>
+    <string name="ride_tracker_last_ride_dialog_accept">Continue existing ride</string>
+    <string name="ride_tracker_last_ride_dialog_decline">Start new ride</string>
+
+    <string name="distance_label">Distance</string>
+    <string name="elevation_label">Elevation</string>
+    <string name="speed_label">Speed</string>
+    <string name="duration_label">Duration</string>
+    <string name="stop_ride_label">Stop Ride</string>
+    <string name="start_ride_label">Start Ride</string>
+    <string name="top_speed_label">Top speed</string>
+    <string name="average_speed_label">Average speed</string>
+
 
 </resources>

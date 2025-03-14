@@ -4,9 +4,9 @@ import ComposeApp
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        MainViewControllerKt.MainViewController()
+        MainViewControllerKt.mainViewController()
     }
-    
+
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
@@ -28,7 +28,7 @@ struct ContentView: View {
      func makeUIViewController(context: Context) -> UIViewController {
          MainViewControllerKt.MainViewController()
      }
-     
+
      func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
  }
 
@@ -50,7 +50,7 @@ struct ContentView: View {
                          withAnimation(.easeIn(duration: 1)){
                              scaleAmount = 100.0
                          }
-                         
+
                          DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
                              isHomeRootScreen = true
                          })}

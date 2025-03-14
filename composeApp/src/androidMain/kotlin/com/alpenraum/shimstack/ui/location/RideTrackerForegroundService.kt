@@ -1,0 +1,228 @@
+package com.alpenraum.shimstack.ui.location
+
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
+import android.os.IBinder
+import android.text.format.DateUtils
+import android.view.View
+import android.widget.RemoteViews
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
+import androidx.core.bundle.bundleOf
+import com.alpenraum.shimstack.MainActivity
+import com.alpenraum.shimstack.R
+import com.alpenraum.shimstack.domain.ridetracker.RideTrackerService
+import com.alpenraum.shimstack.ui.base.navigation.DeeplinkManager
+import com.alpenraum.shimstack.ui.base.navigation.NavigationTarget
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import kotlin.math.roundToInt
+
+class RideTrackerForegroundService :
+    Service(),
+    KoinComponent {
+    private val rideTrackerService: RideTrackerService by inject()
+
+    private var locationManager: LocationManager? = null
+
+    companion object {
+        private const val CHANNEL_ID = "1"
+        private const val NOTIFICATION_ID = 100
+
+        const val EXTRA_RIDE_ID = "RIDE_ID"
+
+        private var isActive: Boolean = false
+
+        internal fun isActive(): Boolean = isActive
+
+        const val ACTION_STOP = "STOP_FOREGROUND_SERVICE"
+    }
+
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(Dispatchers.IO + job)
+
+    private var remoteView: RemoteViews? = null
+    private var notification: Notification? = null
+
+    private val notificationManager by lazy {
+        getSystemService(NotificationManager::class.java)
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        remoteView =
+            RemoteViews(packageName, R.layout.notification_layout)
+    }
+
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int
+    ): Int {
+        if (intent?.action == ACTION_STOP) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+            isActive = false
+            return START_NOT_STICKY
+        }
+        scope.launch {
+            if (rideTrackerService.ride?.rideId == null) {
+                throw IllegalStateException("RideTrackerService has no valid Ride! ${rideTrackerService.ride}")
+            }
+            if (!isActive) {
+                createNotificationChannel()
+
+                notification = getNotification()
+                ServiceCompat
+                    .startForeground(
+                        this@RideTrackerForegroundService,
+                        NOTIFICATION_ID,
+                        notification!!,
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                        } else {
+                            0
+                        }
+                    )
+                locationManager = LocationManager()
+                var gpsAcquired = false
+                scope.launch {
+                    locationManager?.getLocationUpdates(this@RideTrackerForegroundService)?.collect {
+                        gpsAcquired = true
+                        showTimer()
+
+                        rideTrackerService.addNewGpsPoint(it)
+                    }
+                }
+                scope.launch {
+                    var seconds = 0L
+                    while (true) {
+                        if (gpsAcquired) {
+                            val start = Clock.System.now().toEpochMilliseconds()
+                            seconds++
+                            updateTimer(seconds)
+                            updateDistance(rideTrackerService.getTotalDistance())
+                            updateElevation(rideTrackerService.getTotalElevation())
+
+                            delay(1000L - (Clock.System.now().toEpochMilliseconds() - start))
+                        }
+                    }
+                }
+
+                isActive = true
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    override fun onDestroy() {
+        locationManager?.onStop()
+        val onDbFinished = {
+            scope.cancel()
+            isActive = false
+            super.onDestroy()
+        }
+        scope.launch {
+            rideTrackerService.finishRide()
+            onDbFinished()
+        }
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val serviceChannel =
+                NotificationChannel(
+                    CHANNEL_ID,
+                    getString(R.string.notification_channel_name),
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+            notificationManager.createNotificationChannel(serviceChannel)
+        }
+    }
+
+    private fun getNotification(): Notification {
+        val stopIntent =
+            Intent(this, RideTrackerForegroundService::class.java).apply {
+                action = ACTION_STOP
+            }
+        val stopPendingIntent =
+            PendingIntent.getService(
+                this,
+                0,
+                stopIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        val notificationIntent =
+            Intent(this, MainActivity::class.java).apply {
+                action = Intent.ACTION_VIEW
+                putExtras(bundleOf(DeeplinkManager.NAV_ARG to NavigationTarget.RIDE_TRACKER.name))
+            }
+        val pendingIntent =
+            PendingIntent.getActivity(
+                this,
+                0,
+                notificationIntent,
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        // TODO: MAKE NOTIFICATION VIEW BETTER
+        val builder =
+            NotificationCompat
+                .Builder(this, CHANNEL_ID)
+                .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+                .setContentIntent(pendingIntent)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setCustomContentView(remoteView) // TODO: ADD SPECIFIC VIEW FOR COLLAPSED
+                .setCustomBigContentView(remoteView)
+                .setOngoing(true)
+                .setOnlyAlertOnce(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .addAction(R.drawable.ic_launcher_foreground, getString(R.string.stop), stopPendingIntent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        }
+        return builder.build()
+    }
+
+    private fun updateTimer(seconds: Long) {
+        val timerText = DateUtils.formatElapsedTime(seconds)
+        remoteView?.setTextViewText(R.id.timer_text, timerText)
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun updateDistance(distance: Float) {
+        val distanceText = "${distance.roundToInt()} m" // TODO correct measurement
+        remoteView?.setTextViewText(R.id.distance_text, distanceText)
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun updateElevation(elevation: Float) {
+        val elevationText = "${elevation.roundToInt()} m" // TODO correct measurement
+        remoteView?.setTextViewText(R.id.elevation_text, elevationText)
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun showTimer() {
+        remoteView?.setViewVisibility(R.id.progress_spinner, View.GONE)
+        remoteView?.setViewVisibility(R.id.content, View.VISIBLE)
+
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+}

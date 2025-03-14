@@ -13,6 +13,14 @@ import com.alpenraum.shimstack.domain.model.measurementunit.Pressure
 import com.alpenraum.shimstack.domain.model.suspension.Damping
 import com.alpenraum.shimstack.domain.model.suspension.Suspension
 import com.alpenraum.shimstack.domain.model.tire.Tire
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
+import kotlin.math.round
+import kotlin.time.Duration
 
 fun BikeTemplateDTO.toDomain() =
     BikeTemplate(
@@ -85,3 +93,35 @@ fun BikeDTO.toDomain() =
         rearTire.toDomain(),
         isEBike
     )
+
+fun Float.kmToMiles() = this / 1.609f
+
+fun Float.mToFeet() = this * 3.28084f
+
+fun Float.kphToMph() = this / 1.609f
+
+fun Float.roundToUiFormat() = round(this * 10) / 10
+
+fun Duration.formatted(): String =
+    this.toComponents { hours, minutes, seconds, _ ->
+        "${hours.toInt().padStartForWidth()}:${minutes.padStartForWidth()}:${seconds.padStartForWidth()}"
+    }
+
+fun Int.padStartForWidth(width: Int = 2): String {
+    val times = width - this.toString().length
+    return if (times <= 0) this.toString() else "${"0".repeat(times)}$this"
+}
+
+fun Instant.toDate(): String {
+    val timeZone = TimeZone.currentSystemDefault() // Gets the device's current time zone
+    val localDateTime = this.toLocalDateTime(timeZone)
+    return localDateTime.format(
+        LocalDateTime.Format {
+            dayOfMonth()
+            char('.')
+            monthNumber()
+            char('.')
+            year()
+        }
+    )
+}

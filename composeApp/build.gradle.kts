@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
@@ -15,9 +14,18 @@ plugins {
 
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
+        }
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.addAll(
+                        "-P",
+                        "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=cl.emilym.kmp.parcelable.Parcelize"
+                    )
+                }
+            }
         }
     }
 
@@ -39,6 +47,8 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.splashscreen)
             implementation(libs.androidx.material)
+            implementation(libs.play.services.location)
+            implementation(libs.maps.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -72,6 +82,7 @@ kotlin {
             implementation(libs.datastore.preferences)
             implementation(libs.datastore)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.parcelable)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -123,6 +134,11 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            manifestPlaceholders["app_name"] = "@string/app_name"
+        }
+        getByName("debug") {
+            applicationIdSuffix = ".dev"
+            manifestPlaceholders["app_name"] = "@string/app_name_debug"
         }
     }
     compileOptions {

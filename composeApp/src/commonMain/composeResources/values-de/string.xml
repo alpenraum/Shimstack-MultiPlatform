@@ -40,6 +40,7 @@
     <string name="metric">Metrisch</string>
     <string name="imperial">Imperial</string>
     <string name="clicks">Klicks</string>
+    <string name="kph" >kmh</string>
 
     <string name="fab_add_bike">Neues Fahrrad hinzufügen</string>
     <string name="copy_add_new_bike">Füge dein erstes Fahrrrad hinzu!</string>
@@ -51,6 +52,7 @@
     <string name="label_yes">Ja</string>
     <string name="label_no">Nein</string>
     <string name="label_done">Fertig</string>
+    <string name="label_cancel" >Abbrechen</string>
     <string name="label_edit">Ändern</string>
     <string name="label_delete">Löschen</string>
     <string name="label_save">Speichern</string>
@@ -158,5 +160,27 @@
     <string name="symptom_too_much_comp_title">Das Bike ist unkomfortabel</string>
     <string name="symptom_too_much_comp_description">Dein Sag ist gut, aber das Rad fühlt sich hart an und es ist schwierig, tiefer in den Federweg zu kommen.</string>
 
+    <string name="permission_foreground_name">GPS Aufzeichnung</string>
+    <string name="permission_foreground_explainer">Damit Shimstack deinen Ride aufzeichnen darf</string>
+    <string name="permission_background_name">GPS im Hintergrund</string>
+    <string name="permission_background_explainer">Damit dein Ride auch weiterhin aufgezeichnet wird, wenn die App im Hintergrund ist.</string>
+    <string name="permission_location_name">Ortungsservice</string>
+    <string name="permission_location_explainer">Das GPS von deinem Gerät muss angeschalten sein.</string>
+    <string name="permission_notification_name">Benachrichtigungen</string>
+    <string name="permission_notification_explainer">Während dein Ride aufgezeichnet wird, siehst du den aktuellen Stand in einer Benachrichtigung</string>
+
+    <string name="ride_tracking_name">Ride Tracker</string>
+    <string name="ride_tracker_last_ride_dialog">Es schaut so aus, als wäre dein letzter Ride nie fertiggestellt geworden. Magst du ihn fortsetzen oder einen neuen starten?</string>
+    <string name="ride_tracker_last_ride_dialog_accept">Ride fortsetzen</string>
+    <string name="ride_tracker_last_ride_dialog_decline">Neuen Ride starten</string>
+
+    <string name="distance_label">Entfernung</string>
+    <string name="elevation_label">Höhenmeter</string>
+    <string name="speed_label">Geschwindigkeit</string>
+    <string name="duration_label">Dauer</string>
+    <string name="stop_ride_label">Ride stoppen</string>
+    <string name="start_ride_label">Ride starten</string>
+    <string name="top_speed_label">Höchstgeschwindigkeit</string>
+    <string name="average_speed_label">Durchschnittliche Geschwindigkeit</string>
 
 </resources>
