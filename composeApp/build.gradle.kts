@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -125,6 +126,11 @@ android {
                 .toInt()
         versionCode = 1
         versionName = "1.0"
+
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+        val apikey = properties.getProperty("maps_android_sdk_key")
+        manifestPlaceholders["maps_api_key"] = apikey
     }
     packaging {
         resources {
