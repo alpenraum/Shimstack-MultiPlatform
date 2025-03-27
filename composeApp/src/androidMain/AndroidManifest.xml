@@ -38,7 +38,7 @@
 <!--        TODO: RESTRICT ACCESS ON GOOGLE CLOUD FOR THIS API KEY ONCE APP IS PUBLIC-->
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
-                android:value="AIzaSyBDWNHndfsgtl5_wloKl0KmxXJ0N8x4FWk" />
+                android:value="${maps_api_key}" />
     </application>
 
 
