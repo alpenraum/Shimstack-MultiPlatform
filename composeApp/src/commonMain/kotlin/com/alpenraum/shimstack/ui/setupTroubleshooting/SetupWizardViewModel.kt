@@ -43,9 +43,9 @@ class SetupWizardViewModel(
     private val setupSymptomViewMapper: SetupSymptomViewMapper,
     private val getSetupSolutionUseCase: GetSetupSolutionUseCase,
     private val getUserSettingsUseCase: GetUserSettingsUseCase,
-    private val shimstackLogger: ShimstackLogger,
+    logger: ShimstackLogger,
     dispatchersProvider: DispatchersProvider
-) : BaseViewModel(dispatchersProvider),
+) : BaseViewModel(dispatchersProvider, logger),
     SetupWizardContract {
     private val bikes = MutableStateFlow<ImmutableList<Bike>>(persistentListOf())
     private var selectedBike: MutableStateFlow<Bike?> = MutableStateFlow(null)
@@ -111,7 +111,7 @@ class SetupWizardViewModel(
                     setupRecommendationRepository.updateAcceptanceState(it.id ?: -1, false)
                     emitDefaultState()
                 } catch (e: SQLiteException) {
-                    shimstackLogger.e("error during updating bike based on recommendation", e)
+                    logger.e("error during updating bike based on recommendation", e)
                     _event.emit(SetupWizardContract.Event.Error)
                 }
             }
@@ -135,9 +135,9 @@ class SetupWizardViewModel(
                         emitUpdateSuspensionPressure(it.frontSagDelta != null, it.rearSagDelta != null)
                     } else {
                         selectedBike.value?.let { bike ->
-                            shimstackLogger.d("oldBike: $bike")
+                            logger.d("oldBike: $bike")
                             val newBike = bike.copyWithSetupRecommendation(it)
-                            shimstackLogger.d("newBike: $newBike")
+                            logger.d("newBike: $newBike")
                             bikeRepository.updateBike(newBike)
 
                             emitSuccessState()
@@ -146,7 +146,7 @@ class SetupWizardViewModel(
                         emitDefaultState()
                     }
                 } catch (e: SQLiteException) {
-                    shimstackLogger.e("error during updating bike based on recommendation", e)
+                    logger.e("error during updating bike based on recommendation", e)
                     _event.emit(SetupWizardContract.Event.Error)
                 }
             }

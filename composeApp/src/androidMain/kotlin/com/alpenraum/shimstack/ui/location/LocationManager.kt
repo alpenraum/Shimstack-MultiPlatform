@@ -18,14 +18,14 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.core.component.get
 
 class LocationManager : KoinComponent {
     companion object {
         private const val TAG = "LocationManager"
     }
 
-    private val logger: ShimstackLogger by inject()
+    private val logger: ShimstackLogger = get<ShimstackLogger>().apply { setTag(this@LocationManager::class.simpleName) }
 
     private var fusedClient: FusedLocationProviderClient? = null
     private var locationUpdateListener: LocationCallback? = null

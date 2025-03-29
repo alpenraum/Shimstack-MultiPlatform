@@ -1,6 +1,7 @@
 package com.alpenraum.shimstack.ui.ridetracker
 
 import androidx.navigation.NavController
+import com.alpenraum.shimstack.BuildKonfig
 import com.alpenraum.shimstack.base.BaseViewModel
 import com.alpenraum.shimstack.base.DispatchersProvider
 import com.alpenraum.shimstack.base.UnidirectionalViewModel
@@ -49,11 +50,11 @@ class RideTrackerViewModel(
     private val locationService: LocationService,
     private val locationPermissionManager: LocationPermissionManager,
     private val rideTrackerRepository: RideTrackerRepository,
-    private val shimstackLogger: ShimstackLogger,
     private val rideTrackerService: RideTrackerService,
     private val userSettingsUseCase: GetUserSettingsUseCase,
+    logger: ShimstackLogger,
     dispatchersProvider: DispatchersProvider
-) : BaseViewModel(dispatchersProvider),
+) : BaseViewModel(dispatchersProvider, logger),
     RideTrackerContract {
     private var measurementUnitType: MeasurementUnitType = MeasurementUnitType.METRIC
 
@@ -77,10 +78,16 @@ class RideTrackerViewModel(
         navController: NavController
     ) {
         when (intent) {
-            RideTrackerContract.Intent.StartTracking -> startLocationTracking()
+            is RideTrackerContract.Intent.StartTracking -> startLocationTracking(intent.uploadToRemote)
             is RideTrackerContract.Intent.RequestPermission -> requestPermission(intent.permission)
-            RideTrackerContract.Intent.OnContinueExistingRide -> viewModelScope.launch { continueExistingRide() }
-            RideTrackerContract.Intent.OnStartNewRide -> viewModelScope.launch { startNewRide() }
+            is RideTrackerContract.Intent.OnContinueExistingRide ->
+                viewModelScope.launch {
+                    continueExistingRide(
+                        intent.uploadToRemote
+                    )
+                }
+
+            is RideTrackerContract.Intent.OnStartNewRide -> viewModelScope.launch { startNewRide(intent.uploadToRemote) }
             RideTrackerContract.Intent.OnStopRideClick -> finishRide()
         }
     }
@@ -90,7 +97,7 @@ class RideTrackerViewModel(
     override fun onStart() {
         backgroundWorkJob =
             iOScope.launch {
-                shimstackLogger.d("starting permission job")
+                logger.d("starting permission job")
                 if (locationService.isLocationServiceActive()) {
                     triggerActiveRideCollectionFromCache()
                 } else {
@@ -101,7 +108,7 @@ class RideTrackerViewModel(
                         locationPermissionManager.checkPermissionFlow(AppPermissions.LOCATION_SERVICE_ON),
                         locationPermissionManager.checkPermissionFlow(AppPermissions.SHOW_NOTIFICATIONS)
                     ) { foreground, background, location, notification ->
-                        shimstackLogger.d("getting update from locationPermissionManager!")
+                        logger.d("getting update from locationPermissionManager!")
                         listOf(foreground, background, location, notification)
                     }.collectLatest {
                         updatePermissionState(it[0], it[1], it[2], it[3])
@@ -140,10 +147,10 @@ class RideTrackerViewModel(
                 }
             }.takeWhile { newState -> newState !is RideTrackerContract.State.Default }
             .onCompletion {
-                shimstackLogger.d("on completion called!")
+                logger.d("on completion called!")
                 _state.emit(getDefaultState())
             }.collectLatest { newState ->
-                shimstackLogger.d("emitting new state: $newState")
+                logger.d("emitting new state: $newState")
                 _state.emit(newState)
             }
     }
@@ -151,7 +158,7 @@ class RideTrackerViewModel(
     @Deprecated("triggerActiveRideCollectionFromCache works better")
     private suspend fun triggerActiveRideCollectionFromDb(activeRideId: Long? = null) {
         (activeRideId ?: rideTrackerRepository.getActiveRide()?.rideId)?.let {
-            shimstackLogger.d("starting ride UI for id: $it")
+            logger.d("starting ride UI for id: $it")
             rideTrackerRepository
                 .getRideFlow(it)
                 .combine(rideTrackerRepository.getGpsPointsForRideFlow(it)) { ride, gpsPoints ->
@@ -233,7 +240,7 @@ class RideTrackerViewModel(
             }
         }
 
-    private fun startLocationTracking() =
+    private fun startLocationTracking(uploadToRemote: Boolean) =
         viewModelScope.launch {
             if (state.value is RideTrackerContract.State.Permissions
             ) {
@@ -244,7 +251,7 @@ class RideTrackerViewModel(
                 if (rideTrackerRepository.getActiveRide() != null) {
                     _event.emit(RideTrackerContract.Event.ShowContinueExistingRideDialog)
                 } else {
-                    startNewRide()
+                    startNewRide(uploadToRemote)
                 }
             }
         }
@@ -264,28 +271,42 @@ class RideTrackerViewModel(
                 }.toImmutableList()
         )
 
+    private suspend fun showLinkShare(sessionId: String) {
+        val link = BuildKonfig.baseUrl + "/observer/$sessionId"
+        _event.emit(RideTrackerContract.Event.ShareRideTrackingLink(link))
+    }
+
     private suspend fun emitDefaultState() {
         val rides = getDefaultState()
         _state.emit(rides)
     }
 
-    private suspend fun startNewRide() {
-        val ride = rideTrackerRepository.createNewRide()
+    private suspend fun startNewRide(uploadToRemote: Boolean) {
+        val ride = rideTrackerService.startNewRide(uploadToRemote)
 
         ride.rideId?.let {
             rideTrackerService.ride = ride
             locationService.startLocationService(it)
         }
         triggerActiveRideCollectionFromCache()
+        ride.remoteId?.let {
+            showLinkShare(it)
+        } ?: logger.e("Remote-Id of Ride not available. Not able to share url! $ride")
     }
 
-    private suspend fun continueExistingRide() {
+    private suspend fun continueExistingRide(uploadToRemote: Boolean) {
         val ride = rideTrackerRepository.getActiveRide()
 
         ride?.let {
             rideTrackerService.ride = it
+            if (uploadToRemote) {
+                rideTrackerService.activateRemoteUpload()
+            }
             locationService.startLocationService(it.rideId!!)
             triggerActiveRideCollectionFromCache()
+            it.remoteId?.let { remoteId ->
+                showLinkShare(remoteId)
+            } ?: logger.e("Remote-Id of Ride not available. Not able to share url! $ride")
         }
     }
 
@@ -343,18 +364,28 @@ interface RideTrackerContract :
 
     sealed class Event {
         object ShowContinueExistingRideDialog : Event()
+
+        class ShareRideTrackingLink(
+            val link: String
+        ) : Event()
     }
 
     sealed interface Intent {
-        object StartTracking : Intent
+        class StartTracking(
+            val uploadToRemote: Boolean
+        ) : Intent
 
         class RequestPermission(
             val permission: AppPermissions
         ) : Intent
 
-        object OnContinueExistingRide : Intent
+        class OnContinueExistingRide(
+            val uploadToRemote: Boolean
+        ) : Intent
 
-        object OnStartNewRide : Intent
+        class OnStartNewRide(
+            val uploadToRemote: Boolean
+        ) : Intent
 
         object OnStopRideClick : Intent
     }

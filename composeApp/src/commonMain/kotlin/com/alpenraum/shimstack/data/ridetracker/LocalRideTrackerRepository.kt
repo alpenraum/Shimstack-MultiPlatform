@@ -1,6 +1,7 @@
 package com.alpenraum.shimstack.data.ridetracker
 
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.base.logger.WithLogger
 import com.alpenraum.shimstack.data.db.GpsPointDao
 import com.alpenraum.shimstack.data.db.RideDao
 import com.alpenraum.shimstack.data.model.ridetracker.GpsPointDto
@@ -18,8 +19,9 @@ import org.koin.core.annotation.Single
 class LocalRideTrackerRepository(
     private val rideDao: RideDao,
     private val gpsPointDao: GpsPointDao,
-    private val logger: ShimstackLogger
-) : RideTrackerRepository {
+    logger: ShimstackLogger
+) : WithLogger(logger),
+    RideTrackerRepository {
     override suspend fun createNewRide(): Ride {
         val rideDto = RideDto(startTime = Clock.System.now().toString(), endTime = null)
         val id = rideDao.insertRide(rideDto)
@@ -68,4 +70,12 @@ class LocalRideTrackerRepository(
     override suspend fun getActiveRide(): Ride? = rideDao.getOngoingRide()?.takeIf { it.endTime == null }?.toDomain()
 
     override suspend fun getGpsById(id: Long): List<GpsPoint> = gpsPointDao.getPointById().map { it.toDomain() }
+
+    override suspend fun consumeUpdate(
+        ride: Ride,
+        gpsPoints: List<GpsPoint>
+    ) {
+        updateRide(ride)
+        insertGpsPoints(gpsPoints)
+    }
 }

@@ -1,6 +1,10 @@
 package com.alpenraum.shimstack.domain.ridetracker
 
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.base.logger.WithLogger
+import com.alpenraum.shimstack.data.ridetracker.LocalRideTrackerCache
+import com.alpenraum.shimstack.data.ridetracker.RideTrackerApiRepository
+import com.alpenraum.shimstack.data.ridetracker.RideUpdateConsumer
 import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
 import com.alpenraum.shimstack.domain.model.ridetracker.Ride
 import com.alpenraum.shimstack.ui.location.model.LocationResult
@@ -14,9 +18,32 @@ import org.koin.core.annotation.Single
 class RideTrackerService(
     private val rideTrackerCache: RideTrackerCache,
     private val rideTrackerRepository: RideTrackerRepository,
-    private val logger: ShimstackLogger
-) {
+    private val rideTrackerApiRepository: RideTrackerApiRepository,
+    logger: ShimstackLogger
+) : WithLogger(logger) {
     var ride: Ride? = null
+
+    private var lastSavedDistance = 0f
+    private var lastSavedTime = Clock.System.now().epochSeconds
+    private var lastSaveIndex: Int = 0
+    private var uploadToRemote: Boolean = false
+
+    private var rideUpdateConsumers: MutableList<RideUpdateConsumer> = mutableListOf(rideTrackerRepository)
+
+    suspend fun startNewRide(uploadToRemote: Boolean): Ride {
+        val ride = rideTrackerRepository.createNewRide()
+
+        if (uploadToRemote) {
+            activateRemoteUpload()
+        }
+
+        return ride
+    }
+
+    fun activateRemoteUpload() {
+        this.uploadToRemote = true
+        rideUpdateConsumers.add(rideTrackerApiRepository)
+    }
 
     suspend fun finishRide() {
         ride?.let {
@@ -58,26 +85,59 @@ class RideTrackerService(
                         ride = newRide
                     }
             )
-//            rideTrackerCache.finishRide(it)
+            if (uploadToRemote) {
+                rideTrackerApiRepository.finishRide()
+                rideUpdateConsumers.remove(rideTrackerApiRepository)
+                uploadToRemote = false
+            }
+            lastSavedDistance = 0f
+            lastSaveIndex = 0
+            lastSavedTime = Clock.System.now().epochSeconds
+            ride = null
         }
     }
 
     suspend fun addNewGpsPoint(gpsPoint: LocationResult) =
         ride?.let {
-            if (it.rideId == null) {
-                logger.e("Set Ride has no valid id!")
-                return@let
-            }
-            rideTrackerCache.getLastGpsPoint()?.let { prev ->
-                val newDistance =
-                    calculateDistance(prev.latitude, prev.longitude, gpsPoint.latitude, gpsPoint.longitude)
-                rideTrackerCache.addToTotalDistance(newDistance)
+            with(rideTrackerCache) {
+                if (it.rideId == null) {
+                    logger.e("Set Ride has no valid id!")
+                    return@let
+                }
+                getLastGpsPoint()?.let { prev ->
+                    val newDistance =
+                        calculateDistance(prev.latitude, prev.longitude, gpsPoint.latitude, gpsPoint.longitude)
+                    addToTotalDistance(newDistance)
 
-                rideTrackerCache.addToTotalElevation(gpsPoint.altitude.toFloat() - prev.altitude.toFloat().coerceAtLeast(0f))
-            }
+                    addToTotalElevation(gpsPoint.altitude.toFloat() - prev.altitude.toFloat().coerceAtLeast(0f))
+                }
 
-            rideTrackerCache.addNewGpsPoint(GpsPoint.fromLocationResult(gpsPoint, it.rideId), it)
+                addNewGpsPoint(GpsPoint.fromLocationResult(gpsPoint, it.rideId), it)
+
+                if (getTotalDistance() - lastSavedDistance >= 50 || Clock.System.now().epochSeconds - lastSavedTime >= 10) {
+                    saveGpsData(it, getGpsPoints(), getTotalDistance())
+                }
+            }
         }
+
+    private suspend fun saveGpsData(
+        ride: Ride,
+        gpsPoints: List<GpsPoint>,
+        newTotalDistance: Float
+    ) {
+        logger.d("Saving GpsData to db!", tag = LocalRideTrackerCache::class.simpleName.toString())
+        try {
+            rideTrackerRepository.insertGpsPoints(gpsPoints.subList(fromIndex = lastSaveIndex, gpsPoints.size))
+            lastSaveIndex = gpsPoints.size - 1
+
+            rideTrackerRepository.updateRide(ride.copy(totalDistance = newTotalDistance))
+
+            lastSavedDistance = newTotalDistance
+            lastSavedTime = Clock.System.now().epochSeconds
+        } catch (e: Exception) {
+            logger.e("Something went wrong while storing gps data!", e, tag = LocalRideTrackerCache::class.simpleName.toString())
+        }
+    }
 
     fun getRideDataFlow(): Flow<RideData> =
         rideTrackerCache

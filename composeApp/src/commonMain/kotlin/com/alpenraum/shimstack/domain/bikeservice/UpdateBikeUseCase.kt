@@ -1,14 +1,15 @@
 package com.alpenraum.shimstack.domain.bikeservice
 
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.base.logger.WithLogger
 import com.alpenraum.shimstack.domain.model.bike.Bike
 import org.koin.core.annotation.Single
 
 @Single
 class UpdateBikeUseCase(
     private val bikeRepository: BikeRepository,
-    private val logger: ShimstackLogger
-) {
+    logger: ShimstackLogger
+) : WithLogger(logger) {
     suspend operator fun invoke(bike: Bike): Boolean {
         return try {
             val id = bike.id ?: return false

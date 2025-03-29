@@ -9,5 +9,6 @@ data class Ride(
     val totalDistance: Float = 0f,
     val totalElevation: Float = 0f,
     val averageSpeed: Float = 0f,
-    val topSpeed: Float = 0f
+    val topSpeed: Float = 0f,
+    val remoteId: String? = null
 )

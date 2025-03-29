@@ -1,5 +1,7 @@
 package com.alpenraum.shimstack.base
 
+import com.alpenraum.shimstack.base.network.ApiResolver
+import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.zip
 
@@ -23,3 +25,5 @@ fun <T1, T2, T3, T4, R> zip(
         }.zip(fourth) { (a, b, c), d ->
             transform(a, b, c, d)
         }
+
+suspend inline fun <reified T> HttpResponse.resolve(apiResolver: ApiResolver): T = with(apiResolver) { this@resolve.handle<T>() }
