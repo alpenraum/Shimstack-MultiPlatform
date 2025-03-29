@@ -25,4 +25,6 @@ interface RideTrackerCache {
     fun getGpsPointFlow(): Flow<List<GpsPoint>>
 
     fun getGpsPoints(): List<GpsPoint>
+
+    fun reset()
 }

@@ -17,7 +17,7 @@ class ShimstackLogger(
             platformLogWriter(),
             minSeverity = loggerMinSeverity()
         ),
-    val tag: String? = null
+    private var tag: String? = null
 ) : BaseLogger(config) {
     private fun generateTag() = "___"
 
@@ -133,6 +133,10 @@ class ShimstackLogger(
         var tag = "" // element.className.substringAfterLast('.')
         tag = tag.replace(ANONYMOUS_CLASS, "")
         return tag
+    }
+
+    fun setTag(simpleName: String?) {
+        tag = simpleName
     }
 
     companion object {

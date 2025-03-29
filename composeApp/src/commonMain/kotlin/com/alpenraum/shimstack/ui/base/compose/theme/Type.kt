@@ -83,24 +83,24 @@ fun AppTypography() =
             ),
         headlineLarge =
             TextStyle(
-                fontFamily = Surt(),
-                fontWeight = FontWeight.Bold,
+                fontFamily = Roboto,
+                fontWeight = FontWeight.Medium,
                 letterSpacing = 0.sp,
                 lineHeight = 40.sp,
                 fontSize = 32.sp
             ),
         headlineMedium =
             TextStyle(
-                fontFamily = Surt(),
-                fontWeight = FontWeight.Bold,
+                fontFamily = Roboto,
+                fontWeight = FontWeight.Medium,
                 letterSpacing = 0.sp,
                 lineHeight = 36.sp,
                 fontSize = 28.sp
             ),
         headlineSmall =
             TextStyle(
-                fontFamily = Surt(),
-                fontWeight = FontWeight.Bold,
+                fontFamily = Roboto,
+                fontWeight = FontWeight.Medium,
                 letterSpacing = 0.sp,
                 lineHeight = 32.sp,
                 fontSize = 24.sp

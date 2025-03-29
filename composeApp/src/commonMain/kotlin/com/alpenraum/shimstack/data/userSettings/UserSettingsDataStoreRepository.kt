@@ -1,6 +1,7 @@
 package com.alpenraum.shimstack.data.userSettings
 
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.base.logger.WithLogger
 import com.alpenraum.shimstack.data.datastore.ShimstackDatastore
 import com.alpenraum.shimstack.domain.model.PreferredTheme
 import com.alpenraum.shimstack.domain.model.measurementunit.MeasurementUnitType
@@ -13,8 +14,9 @@ import org.koin.core.annotation.Single
 @Single
 class UserSettingsDataStoreRepository(
     private val dataStore: ShimstackDatastore,
-    private val logger: ShimstackLogger
-) : UserSettingsRepository {
+    logger: ShimstackLogger
+) : WithLogger(logger),
+    UserSettingsRepository {
     override fun getUserSettings(): Flow<UserSettings> =
         combine(
             dataStore.allowAnalytics,

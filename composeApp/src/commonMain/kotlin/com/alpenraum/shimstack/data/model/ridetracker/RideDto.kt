@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package com.alpenraum.shimstack.data.model.ridetracker
 
 import androidx.room.Entity
@@ -5,6 +7,8 @@ import androidx.room.PrimaryKey
 import com.alpenraum.shimstack.data.db.AppDatabase
 import com.alpenraum.shimstack.domain.model.ridetracker.Ride
 import kotlinx.datetime.Instant
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Entity(tableName = AppDatabase.TABLE_RIDE)
 data class RideDto(
@@ -14,7 +18,8 @@ data class RideDto(
     val totalDistance: Float = 0f, // Meters
     val totalElevation: Float = 0f,
     val averageSpeed: Float = 0f,
-    val topSpeed: Float = 0f
+    val topSpeed: Float = 0f,
+    val remoteId: String? = Uuid.random().toString()
 ) {
     fun toDomain() =
         Ride(
@@ -24,7 +29,8 @@ data class RideDto(
             totalDistance,
             totalElevation,
             averageSpeed,
-            topSpeed
+            topSpeed,
+            remoteId
         )
 
     companion object {
@@ -36,7 +42,8 @@ data class RideDto(
                 ride.totalDistance,
                 ride.totalElevation,
                 ride.averageSpeed,
-                ride.topSpeed
+                ride.topSpeed,
+                ride.remoteId ?: Uuid.random().toString()
             )
     }
 }

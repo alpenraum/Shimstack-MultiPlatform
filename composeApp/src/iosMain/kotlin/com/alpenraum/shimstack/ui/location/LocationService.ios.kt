@@ -1,14 +1,15 @@
 package com.alpenraum.shimstack.ui.location
 
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.base.logger.WithLogger
 import com.alpenraum.shimstack.domain.ridetracker.RideTrackerService
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.get
 
 actual class LocationService(
-    private val logger: ShimstackLogger,
+    logger: ShimstackLogger,
     private val rideTrackerService: RideTrackerService
-) : KoinComponent {
+) : WithLogger(logger),
+    KoinComponent {
     private var locationManager: LocationManager? = null
 
     actual fun isLocationServiceActive(): Boolean = locationManager != null
