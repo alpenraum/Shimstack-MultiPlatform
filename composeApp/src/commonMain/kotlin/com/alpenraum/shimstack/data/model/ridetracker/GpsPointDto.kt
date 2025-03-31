@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 import com.alpenraum.shimstack.data.db.AppDatabase
 import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
 import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
 @Entity(
     tableName = AppDatabase.TABLE_GPS_POINTS,
@@ -20,6 +21,7 @@ import kotlinx.datetime.Instant
     ],
     indices = [Index("rideId")]
 )
+@Serializable
 data class GpsPointDto(
     @PrimaryKey(autoGenerate = true) val id: Long? = null,
     val rideId: Long,

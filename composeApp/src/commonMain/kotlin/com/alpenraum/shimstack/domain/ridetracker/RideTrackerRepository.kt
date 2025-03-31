@@ -1,10 +1,11 @@
 package com.alpenraum.shimstack.domain.ridetracker
 
+import com.alpenraum.shimstack.data.ridetracker.RideUpdateConsumer
 import com.alpenraum.shimstack.domain.model.ridetracker.GpsPoint
 import com.alpenraum.shimstack.domain.model.ridetracker.Ride
 import kotlinx.coroutines.flow.Flow
 
-interface RideTrackerRepository {
+interface RideTrackerRepository : RideUpdateConsumer {
     suspend fun createNewRide(): Ride
 
     suspend fun updateRide(ride: Ride)

@@ -29,6 +29,10 @@ class LocationManager(
     private val rideTrackerService: RideTrackerService
 ) : NSObject(),
     CLLocationManagerDelegateProtocol {
+    init {
+        logger.setTag(this::class.simpleName)
+    }
+
     private val NOTIFICATION_ID = "location_update"
     private val locationManager = CLLocationManager()
 

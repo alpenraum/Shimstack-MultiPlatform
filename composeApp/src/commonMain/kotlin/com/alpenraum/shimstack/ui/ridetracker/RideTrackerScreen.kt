@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.alpenraum.shimstack.base.use
+import com.alpenraum.shimstack.ui.base.ShareService
 import com.alpenraum.shimstack.ui.base.compose.ClassKeyedCrossfade
 import com.alpenraum.shimstack.ui.base.compose.components.AttachToLifeCycle
 import com.alpenraum.shimstack.ui.base.compose.components.ButtonText
@@ -54,6 +56,7 @@ import com.alpenraum.shimstack.ui.location.model.getNameResource
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import shimstackmultiplatform.composeapp.generated.resources.Res
 import shimstackmultiplatform.composeapp.generated.resources.average_speed_label
@@ -66,7 +69,6 @@ import shimstackmultiplatform.composeapp.generated.resources.ride_tracker_last_r
 import shimstackmultiplatform.composeapp.generated.resources.speed_label
 import shimstackmultiplatform.composeapp.generated.resources.start_ride_label
 import shimstackmultiplatform.composeapp.generated.resources.stop_ride_label
-import shimstackmultiplatform.composeapp.generated.resources.tire
 import shimstackmultiplatform.composeapp.generated.resources.top_speed_label
 
 @Composable
@@ -78,7 +80,11 @@ fun RideTrackerScreen(
     AttachToLifeCycle(viewModel = viewModel)
     val (state, intents, events) = use(viewModel = viewModel, navController)
 
+    val shareService = koinInject<ShareService>()
+
     var showDialog by remember { mutableStateOf(false) }
+    var uploadToRemoteToggle by remember { mutableStateOf(false) }
+    val onUploadToRemoteToggleChange: (Boolean) -> Unit = { uploadToRemoteToggle = it }
 
     ShimstackAlertDialog(
         showDialog,
@@ -87,11 +93,14 @@ fun RideTrackerScreen(
         dismissLabel = Res.string.ride_tracker_last_ride_dialog_decline,
         onConfirm = {
             showDialog = false
-            intents(RideTrackerContract.Intent.OnContinueExistingRide)
+            intents(RideTrackerContract.Intent.OnContinueExistingRide(uploadToRemoteToggle))
         },
         onDismissButton = {
             showDialog = false
-            intents(RideTrackerContract.Intent.OnStartNewRide)
+            intents(RideTrackerContract.Intent.OnStartNewRide(uploadToRemoteToggle))
+        },
+        additionalContent = {
+            UploadToRemoteToggle(uploadToRemoteToggle, onUploadToRemoteToggleChange)
         }
     )
 
@@ -99,6 +108,9 @@ fun RideTrackerScreen(
         events.collectLatest {
             when (it) {
                 RideTrackerContract.Event.ShowContinueExistingRideDialog -> showDialog = true
+                is RideTrackerContract.Event.ShareRideTrackingLink -> {
+                    shareService.showTextChooser(it.link, "Share the link to your current ride!")
+                }
             }
         }
     }
@@ -108,7 +120,13 @@ fun RideTrackerScreen(
             modifier = modifier.fillMaxSize().padding(8.dp)
         ) {
             when (it) {
-                is RideTrackerContract.State.Default -> DefaultContent(it, intents)
+                is RideTrackerContract.State.Default ->
+                    DefaultContent(
+                        it,
+                        uploadToRemoteToggle,
+                        onUploadToRemoteToggleChange,
+                        intents
+                    )
 
                 is RideTrackerContract.State.Permissions -> PermissionsContent(it, intents)
                 is RideTrackerContract.State.ActiveRide -> ActiveRideContent(it, intents)
@@ -118,8 +136,27 @@ fun RideTrackerScreen(
 }
 
 @Composable
+private fun UploadToRemoteToggle(
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "Share your location with your friends?", // Todo
+            modifier =
+                Modifier
+                    .padding(end = 8.dp)
+                    .weight(1f, false)
+        )
+        Switch(checked = isChecked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
 fun DefaultContent(
     state: RideTrackerContract.State.Default,
+    uploadToRemoteToggle: Boolean,
+    onUploadToRemoteToggleChange: (Boolean) -> Unit,
     intents: (RideTrackerContract.Intent) -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -129,7 +166,11 @@ fun DefaultContent(
             }
         }
 
-        LargeButton({ intents(RideTrackerContract.Intent.OnStartNewRide) }, modifier = Modifier.padding(vertical = 16.dp)) {
+        UploadToRemoteToggle(uploadToRemoteToggle, onUploadToRemoteToggleChange)
+        LargeButton(
+            { intents(RideTrackerContract.Intent.OnStartNewRide(uploadToRemoteToggle)) },
+            modifier = Modifier.padding(vertical = 16.dp)
+        ) {
             ButtonText(Res.string.start_ride_label)
         }
     }
@@ -168,7 +209,6 @@ private fun RideViewCard(
                 Spacer(Modifier.width(8.dp))
                 Text(rideView.topSpeed)
             }
-
         }
     }
 }

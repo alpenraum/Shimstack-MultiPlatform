@@ -1,5 +1,9 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import java.util.Properties
+
+private val applicationId = "com.alpenraum.shimstack"
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,6 +13,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    alias(libs.plugins.buildKonfig)
     id("kotlin-parcelize") // needed only for non-primitive classes
 }
 
@@ -42,6 +47,10 @@ kotlin {
 
     sourceSets {
 
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -49,6 +58,7 @@ kotlin {
             implementation(libs.androidx.material)
             implementation(libs.play.services.location)
             implementation(libs.maps.compose)
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -83,6 +93,12 @@ kotlin {
             implementation(libs.datastore)
             implementation(libs.kotlinx.datetime)
             implementation(libs.parcelable)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.json)
+            implementation(libs.ktor.content.negotiation)
+            implementation(libs.ktor.logging)
+            implementation(libs.ktor.auth)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -107,14 +123,14 @@ dependencies {
 }
 
 android {
-    namespace = "com.alpenraum.shimstack"
+    namespace = applicationId
     compileSdk =
         libs.versions.android.compileSdk
             .get()
             .toInt()
 
     defaultConfig {
-        applicationId = "com.alpenraum.shimstack"
+        applicationId = this@Build_gradle.applicationId
         minSdk =
             libs.versions.android.minSdk
                 .get()
@@ -125,6 +141,10 @@ android {
                 .toInt()
         versionCode = 1
         versionName = "1.0"
+
+        val properties = getProperties()
+        val apikey = properties.getProperty("maps_android_sdk_key")
+        manifestPlaceholders["maps_api_key"] = apikey
     }
     packaging {
         resources {
@@ -163,6 +183,12 @@ dependencies {
     add("kspIosSimulatorArm64", libs.koin.annotations.ksp)
 }
 
+fun getProperties(): Properties {
+    val properties = Properties()
+    properties.load(project.rootProject.file("local.properties").inputStream())
+    return properties
+}
+
 // KSP Metadata Trigger
 project.tasks.withType(KotlinCompilationTask::class.java).configureEach {
     if (name != "kspCommonMainKotlinMetadata") {
@@ -177,4 +203,21 @@ ksp {
 
 kotlin.sourceSets.commonMain {
     kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+}
+
+buildkonfig {
+    this.packageName = applicationId
+
+    val properties = getProperties()
+    val shimstackDevApiKey = properties.getProperty("shimstack_dev_api_key") // TODO: SECURE BE USING GOOGLE PLAY INTEGRITY API
+
+    defaultConfigs {
+        buildConfigField(FieldSpec.Type.STRING, "baseUrl", "https://localhost:8080") // check exact url through tailscale
+        buildConfigField(FieldSpec.Type.STRING, "authSecret", "TODO")
+    }
+    // changeable in gradle.properties or via -Pbuildkonfig.flavor=release
+    defaultConfigs("dev") {
+        buildConfigField(FieldSpec.Type.STRING, "baseUrl", "https://localhost:8080")
+        buildConfigField(FieldSpec.Type.STRING, "authSecret", shimstackDevApiKey)
+    }
 }

@@ -4,13 +4,15 @@ import android.content.Context
 import android.location.LocationManager
 import android.provider.Settings
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.base.logger.WithLogger
 import com.alpenraum.shimstack.base.openIntent
 import com.alpenraum.shimstack.ui.location.model.PermissionState
 
 actual class LocationServiceRequesterDelegate(
     private val context: Context,
-    private val logger: ShimstackLogger
-) : PermissionRequesterDelegate {
+    logger: ShimstackLogger
+) : WithLogger(logger),
+    PermissionRequesterDelegate {
     private val locationManager: LocationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as
             LocationManager

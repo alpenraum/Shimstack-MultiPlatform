@@ -1,6 +1,7 @@
 package com.alpenraum.shimstack.data.biketemplate
 
 import com.alpenraum.shimstack.base.logger.ShimstackLogger
+import com.alpenraum.shimstack.base.logger.WithLogger
 import com.alpenraum.shimstack.data.db.BikeTemplateDAO
 import com.alpenraum.shimstack.data.model.bike.BikeTemplateDTO
 import com.alpenraum.shimstack.data.toDTO
@@ -16,12 +17,13 @@ import shimstackmultiplatform.composeapp.generated.resources.Res
 @Single(binds = [BikeTemplateRepository::class])
 class LocalBikeTemplateRepository(
     private val bikeTemplateDAO: BikeTemplateDAO,
-    private val shimstackLogger: ShimstackLogger
-) : BikeTemplateRepository {
+    logger: ShimstackLogger
+) : WithLogger(logger),
+    BikeTemplateRepository {
     override suspend fun prepopulateData() {
         val json = loadFileFromAssets(fileName = "bike_templates", fileEnding = "json")
 
-        runWithErrorHandling<Throwable>({ shimstackLogger.e("Error while parsing bike templates", it) }) {
+        runWithErrorHandling<Throwable>({ logger.e("Error while parsing bike templates", it) }) {
             createBikeTemplates(Json.decodeFromString<List<BikeTemplateDTO>>(json))
         }
     }
